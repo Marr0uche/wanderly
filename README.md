@@ -1,2 +1,16 @@
-# Wanderly
-Cette application permet de découvrir facilement les activités, lieux et événements à faire autour d’une ville. Il suffit de rechercher une destination pour obtenir les meilleures suggestions : monuments, restaurants, parcs, musées et plus encore. Idéale pour explorer, planifier un voyage ou redécouvrir sa propre ville.
+# wanderly
+
+A new Flutter project.
+
+## Getting Started
+
+This project is a starting point for a Flutter application.
+
+A few resources to get you started if this is your first Flutter project:
+
+- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
+- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+
+For help getting started with Flutter development, view the
+[online documentation](https://docs.flutter.dev/), which offers tutorials,
+samples, guidance on mobile development, and a full API reference.
