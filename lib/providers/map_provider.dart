@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
-import '../services/location_service.dart';
-import '../services/nominatim_service.dart';
+import '../utils/location_service.dart';
+import '../utils/nominatim_service.dart';
 
-class MapViewModel extends ChangeNotifier {
+class MapProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
   final NominatimService _nominatimService = NominatimService();
-
   LatLng center = const LatLng(47.845431, 1.937851);
   String latitude = "47.845431";
   String longitude = "1.937851";
-
+  String? cityName = "Ma Position";
   String? error;
 
+  // Initialise la position actuelle
   Future<void> init() async {
 	final pos = await _locationService.getCurrentPosition();
 	if (pos == null) return;
@@ -20,9 +20,13 @@ class MapViewModel extends ChangeNotifier {
 	center = LatLng(pos.latitude, pos.longitude);
 	latitude = pos.latitude.toString();
 	longitude = pos.longitude.toString();
+
+  final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
+  if (city != null) cityName = city;
 	notifyListeners();
   }
 
+  // Recherche une ville par son nom
   Future<void> searchCity(String city) async {
 	try{
 
@@ -43,9 +47,10 @@ class MapViewModel extends ChangeNotifier {
 	  return;
 	}
 
-	center = LatLng(result.lat, result.lon);
-	latitude = result.lat.toString();
-	longitude = result.lon.toString();
+	center = LatLng(result.latitude, result.longitude);
+	latitude = result.latitude.toString();
+	longitude = result.longitude.toString();
+  cityName = city;
 
 	} catch (e) {
 	  error = "Erreur inattendue : $e";
@@ -54,4 +59,14 @@ class MapViewModel extends ChangeNotifier {
 
 	notifyListeners();
   }
+
+  // Met a jour la ville depuis les favoris
+  void setCityFromFavorites(String city, LatLng newCenter) {
+    center = newCenter;
+    latitude = newCenter.latitude.toString();
+    longitude = newCenter.longitude.toString();
+    notifyListeners();
+  }
+
+
 }
