@@ -4,9 +4,9 @@ import 'package:provider/provider.dart';
 import 'providers/theme_provider.dart';
 
 class MyApp extends StatelessWidget {
-const MyApp({super.key});
+  const MyApp({super.key});
 
-@override
+  @override
   Widget build(BuildContext context) {
     final themeVM = Provider.of<ThemeProvider>(context);
 
@@ -14,7 +14,7 @@ const MyApp({super.key});
       debugShowCheckedModeBanner: false,
       theme: ThemeData.light(),
       darkTheme: ThemeData.dark(),
-      themeMode: themeVM.currentTheme, // <-- ici le mode change automatiquement
+      themeMode: themeVM.currentTheme,
       home: const AccueilScreen(),
     );
   }
