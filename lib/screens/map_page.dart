@@ -5,7 +5,6 @@ import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../models/city_location.dart';
 
-
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
 
@@ -18,12 +17,12 @@ class _MapPageState extends State<MapPage> {
   final MapController _mapController = MapController();
 
   @override
-void initState() {
-  super.initState();
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    Provider.of<MapProvider>(context, listen: false).init();
-  });
-}
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Provider.of<MapProvider>(context, listen: false).init();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,75 +35,122 @@ void initState() {
 
     return Column(
       children: [
-        // Recherche
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            controller: _cityController,
-            decoration: const InputDecoration(
-              hintText: "Rechercher une ville...",
-              border: OutlineInputBorder(),
-              suffixIcon: Icon(Icons.search),
+        Expanded(
+          flex: 1,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: const [BoxShadow(blurRadius: 5, color: Colors.black26)],
             ),
-            onSubmitted: mapVM.searchCity,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                TextField(
+                  controller: _cityController,
+                  decoration: const InputDecoration(
+                    hintText: "Rechercher une ville...",
+                    border: OutlineInputBorder(),
+                    suffixIcon: Icon(Icons.search),
+                  ),
+                  onSubmitted: mapVM.searchCity,
+                ),
+
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      mapVM.cityName ?? "Ville inconnue",
+                      style: const TextStyle(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(
+                        favVM.favorites.any((c) => c.name == mapVM.cityName)
+                            ? Icons.favorite
+                            : Icons.favorite_border,
+                        color: Colors.red,
+                      ),
+                      onPressed: () {
+                        if (mapVM.cityName == null) return;
+                        final city = CityLocation(
+                          name: mapVM.cityName!,
+                          latitude: double.tryParse(mapVM.latitude) ?? 0.0,
+                          longitude: double.tryParse(mapVM.longitude) ?? 0.0,
+                        );
+                        favVM.favorites.contains(city)
+                            ? favVM.removeFavorite(city)
+                            : favVM.addFavorite(city);
+                      },
+                    )
+                  ],
+                ),
+
+                Text("Lat: ${mapVM.latitude} | Lon: ${mapVM.longitude}"),
+              ],
+            ),
           ),
         ),
 
-        // Nom ville + icône favori
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(
-              mapVM.cityName ?? "Ville inconnue",
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            IconButton(
-              icon: Icon(
-                favVM.favorites.any((c) => c.name == mapVM.cityName)
-                    ? Icons.favorite
-                    : Icons.favorite_border,
-                color: Colors.red,
-              ),
-              onPressed: () {
-                if (mapVM.cityName == null) return;
-                final city = CityLocation(
-                  name: mapVM.cityName!,
-                  latitude: double.tryParse(mapVM.latitude) ?? 0.0,
-                  longitude: double.tryParse(mapVM.longitude) ?? 0.0,
-                );
-                favVM.favorites.contains(city)
-                    ? favVM.removeFavorite(city)
-                    : favVM.addFavorite(city);
-              },
-            ),
-          ],
-        ),
-
-        // Coordonnées
-        Text("Latitude: ${mapVM.latitude}, Longitude: ${mapVM.longitude}"),
-
-        // Carte
         Expanded(
-          child: FlutterMap(
-            mapController: _mapController,
-            options: MapOptions(initialCenter: mapVM.center, initialZoom: 12.0),
-            children: [
-              TileLayer(
-                urlTemplate:
-                    "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                subdomains: const ['a', 'b', 'c', 'd'],
-              ),
-              MarkerLayer(
-                markers: [
-                  Marker(
-                    point: mapVM.center,
-                    child: const Icon(Icons.location_on, color: Colors.red, size: 40),
+          flex: 2,
+          child: Container(
+            margin: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(15),
+            ),
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(15),
+              child: FlutterMap(
+                mapController: _mapController,
+                options: MapOptions(
+                  initialCenter: mapVM.center,
+                  initialZoom: 12.0,
+                ),
+                children: [
+                  TileLayer(
+                    urlTemplate:
+                        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
+                    subdomains: const ['a', 'b', 'c', 'd'],
+                  ),
+                  MarkerLayer(
+                    markers: [
+                      Marker(
+                        point: mapVM.center,
+                        child: const Icon(
+                          Icons.location_on,
+                          color: Colors.red,
+                          size: 40,
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
-            ],
+            ),
           ),
         ),
+
+        Expanded(
+          flex: 1,
+          child: Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
+            ),
+            child: const Center(
+              child: Text(
+                "Infos supplémentaires à venir...",
+                style: TextStyle(fontSize: 16),
+              ),
+            ),
+          ),
+        )
       ],
     );
   }
