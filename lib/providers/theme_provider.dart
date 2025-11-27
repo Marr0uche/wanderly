@@ -9,4 +9,5 @@ class ThemeProvider extends ChangeNotifier {
   }
 
   ThemeMode get currentTheme => isDarkMode ? ThemeMode.dark : ThemeMode.light;
+  
 }

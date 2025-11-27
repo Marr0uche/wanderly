@@ -19,7 +19,7 @@ class NominatimService {
     if (data.isEmpty) return null;
 
    return CityLocation( name: data[0]["display_name"] ?? city, 
-   latitude: double.parse(data[0]["latitude"]), longitude: double.parse(data[0]["longitude"]),
+   latitude: double.parse(data[0]["lat"]), longitude: double.parse(data[0]["lon"]),
     );
   }
 
