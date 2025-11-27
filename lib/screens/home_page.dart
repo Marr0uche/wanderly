@@ -21,27 +21,28 @@ Widget build(BuildContext context) {
         ),
       ],
     ),
-    body: Column(
-      children: [
-        Expanded(
-          child: const MapPage(), // Affiche la carte + recherche
-        ),
-        const Divider(),
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton.icon(
-            icon: const Icon(Icons.list),
-            label: const Text("Voir villes favorites"),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const FavoritesPage()),
-              );
-            },
-          ),
-        ),
-      ],
-    ),
+    body:
+	 SingleChildScrollView(
+		child: Column(
+		children: [
+			const MapPage(),
+			const Divider(),
+			Padding(
+			padding: const EdgeInsets.all(8.0),
+			child: ElevatedButton.icon(
+				icon: const Icon(Icons.list),
+				label: const Text("Voir villes favorites"),
+				onPressed: () {
+				Navigator.push(
+					context,
+					MaterialPageRoute(builder: (_) => const FavoritesPage()),
+				);
+				},
+			),
+			),
+		],
+		),
+	)
   );
 }
 }

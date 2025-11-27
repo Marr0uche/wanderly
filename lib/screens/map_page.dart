@@ -4,6 +4,8 @@ import 'package:flutter_map/flutter_map.dart';
 import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../models/city_location.dart';
+import '../models/weather_data.dart';
+import 'weather_card.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -35,9 +37,7 @@ class _MapPageState extends State<MapPage> {
 
     return Column(
       children: [
-        Expanded(
-          flex: 1,
-          child: Container(
+       Container(
             width: double.infinity,
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
@@ -93,11 +93,24 @@ class _MapPageState extends State<MapPage> {
               ],
             ),
           ),
+		
+		//WeatherCard
+		WeatherCard(
+          mapVM.weatherData ??
+			  WeatherData(
+				temperature: 0,
+				description: "N/A",
+				humidity: 0,
+				minTemp: 0,
+				maxTemp: 0,
+				windSpeed: 0,
+				windDirection: "N/A",
+				iconCode: "01d",
+			  ),
         ),
 
-        Expanded(
-          flex: 2,
-          child: Container(
+         Container(
+			height: MediaQuery.of(context).size.height * 0.40,
             margin: const EdgeInsets.all(8),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
@@ -119,24 +132,25 @@ class _MapPageState extends State<MapPage> {
                   MarkerLayer(
                     markers: [
                       Marker(
-                        point: mapVM.center,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
-                        ),
-                      ),
+						point: mapVM.center,
+						width: 40,
+						height: 40,
+						alignment: Alignment.topCenter,
+						child: const Icon(
+							Icons.location_on,
+							color: Colors.red,
+							size: 40,
+						),
+					  )
                     ],
                   ),
                 ],
               ),
             ),
           ),
-        ),
 
-        Expanded(
-          flex: 1,
-          child: Container(
+
+         Container(
             width: double.infinity,
             padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
@@ -149,8 +163,7 @@ class _MapPageState extends State<MapPage> {
                 style: TextStyle(fontSize: 16),
               ),
             ),
-          ),
-        )
+          )
       ],
     );
   }
