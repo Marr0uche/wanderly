@@ -41,8 +41,8 @@ class WeatherCard extends StatelessWidget {
                 children: [
                   Image.network(
                     "https://openweathermap.org/img/wn/${data.iconCode}@2x.png",
-                    width: 60,
-                    height: 60,
+                    width: 80,
+                    height: 80,
                     errorBuilder: (context, error, stackTrace) {
                       return const Icon(Icons.error, size: 40);
                     },
