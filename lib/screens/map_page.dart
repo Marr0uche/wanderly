@@ -5,6 +5,7 @@ import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../models/city_location.dart';
 import '../models/weather_data.dart';
+import 'favorites_page.dart';
 import 'weather_card.dart';
 
 class MapPage extends StatefulWidget {
@@ -56,40 +57,66 @@ class _MapPageState extends State<MapPage> {
                   ),
                   onSubmitted: mapVM.searchCity,
                 ),
-
+				const SizedBox(height: 10),
                 Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      mapVM.cityName ?? "Ville inconnue",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        favVM.favorites.any((c) => c.name == mapVM.cityName)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.red,
-                      ),
-                      onPressed: () {
-                        if (mapVM.cityName == null) return;
-                        final city = CityLocation(
-                          name: mapVM.cityName!,
-                          latitude: double.tryParse(mapVM.latitude) ?? 0.0,
-                          longitude: double.tryParse(mapVM.longitude) ?? 0.0,
-                        );
-                        favVM.favorites.contains(city)
-                            ? favVM.removeFavorite(city)
-                            : favVM.addFavorite(city);
-                      },
-                    )
-                  ],
-                ),
+					children: [
+						SizedBox(
+							width: 120,
+							child: ElevatedButton.icon(
+								style: ElevatedButton.styleFrom(
+									foregroundColor: Theme.of(context).colorScheme.secondary,
+								),
+								icon: const Icon(Icons.list),
+								label: const Text("Favoris"),
+								onPressed: () {
+									Navigator.push(
+										context,
+										MaterialPageRoute(builder: (_) => const FavoritesPage()),
+									);
+								},
+							),
+						),
 
-                Text("Lat: ${mapVM.latitude} | Lon: ${mapVM.longitude}"),
+						Expanded(
+							child: Center(
+								child: Text(
+									mapVM.cityName ?? "Ville inconnue",
+									textAlign: TextAlign.center,
+									style: const TextStyle(
+										fontSize: 30,
+										fontWeight: FontWeight.bold,
+									),
+								),
+							),
+						),
+
+						SizedBox(
+							width: 120,
+							child: Align(
+								alignment: Alignment.centerRight,
+								child: IconButton(
+									icon: Icon(
+										favVM.favorites.any((c) => c.name == mapVM.cityName)
+											? Icons.favorite
+											: Icons.favorite_border,
+										color: Colors.red,
+									),
+									onPressed: () {
+										if (mapVM.cityName == null) return;
+										final city = CityLocation(
+										name: mapVM.cityName!,
+										latitude: double.tryParse(mapVM.latitude) ?? 0.0,
+										longitude: double.tryParse(mapVM.longitude) ?? 0.0,
+										);
+										favVM.favorites.contains(city)
+											? favVM.removeFavorite(city)
+											: favVM.addFavorite(city);
+									},
+								),
+							),
+						),
+					],
+				),
               ],
             ),
           ),
@@ -112,9 +139,18 @@ class _MapPageState extends State<MapPage> {
          Container(
 			height: MediaQuery.of(context).size.height * 0.40,
             margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-            ),
+			decoration: BoxDecoration(
+				color: Theme.of(context).cardColor,
+				borderRadius: BorderRadius.circular(15),
+				boxShadow: [
+				BoxShadow(
+					color: Theme.of(context).brightness == Brightness.dark ? Colors.black54 : Colors.black12,
+					blurRadius: 10,
+					offset: const Offset(0, 4),
+				),
+				],
+				border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.5)),
+			),
             child: ClipRRect(
               borderRadius: BorderRadius.circular(15),
               child: FlutterMap(

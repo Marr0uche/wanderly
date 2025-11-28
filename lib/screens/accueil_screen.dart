@@ -40,10 +40,10 @@ class AccueilScreen extends StatelessWidget {
             // Logo
             Image.asset(
               'assets/images/logo.png',
-              width: 150,
-              height: 150,
+              width: 200,
+              height: 200,
             ),
-            const SizedBox(height: 40),
+            const SizedBox(height: 20),
 
             // Bouton Commencer
             ElevatedButton(
