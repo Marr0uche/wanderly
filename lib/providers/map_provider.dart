@@ -46,6 +46,8 @@ class MapProvider extends ChangeNotifier {
 	error = null;
 	notifyListeners();
 
+	city =  city[0].toUpperCase() + city.substring(1);
+
 	final result = await _nominatimService.searchCity(city);
 
 	if (result == null) {
