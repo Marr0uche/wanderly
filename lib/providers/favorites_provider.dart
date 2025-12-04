@@ -1,29 +1,28 @@
 import 'package:flutter/material.dart';
 import 'package:wanderly/models/city_location.dart';
-import '../utils/favorites_service.dart';
+import '../db/database_helper.dart';
 
-
-class FavoritesProvider  extends ChangeNotifier {
-  final FavoritesService _favoritesService = FavoritesService();
+class FavoritesProvider extends ChangeNotifier {
   List<CityLocation> favorites = [];
 
-  // Charge les favoris depuis le service
-  Future<void> localFavorites() async {
-    favorites = await _favoritesService.getFavorites();
-    notifyListeners();
-  }
+	FavoritesProvider() {
+		loadFavorites();
+	}
 
-  // Ajoute une ville aux favoris
-  Future<void> addFavorite(CityLocation city) async {
-    await _favoritesService.ajouterFavorites(city);
-    favorites.add(city);
-    notifyListeners();
-  }
+	Future<void> loadFavorites() async {
+		favorites = await Dbhelper.instance.fetchFavorites();
+		notifyListeners();
+	}
 
-  // Retire une ville des favoris
-  Future<void> removeFavorite(CityLocation city) async {
-    await _favoritesService.removeFavorites(city);
-    favorites.remove(city);
-    notifyListeners();
-  }
+	Future<void> addFavorite(CityLocation city) async {
+		final id = await Dbhelper.instance.insertFavorite(city);
+		favorites.insert(0, city.copyWith(id: id));
+		notifyListeners();
+	}
+
+	Future<void> removeFavorite(CityLocation city) async {
+		await Dbhelper.instance.deleteFavorite(city.id!);
+		favorites.removeWhere((c) => c.id == city.id);
+		notifyListeners();
+	}
 }

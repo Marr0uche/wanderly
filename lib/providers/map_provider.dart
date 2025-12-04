@@ -4,41 +4,47 @@ import '../utils/location_service.dart';
 import '../utils/nominatim_service.dart';
 import '../models/weather_data.dart';
 import '../utils/weather_service.dart';
+import '../models/city_location.dart';
 
 class MapProvider extends ChangeNotifier {
   final LocationService _locationService = LocationService();
   final NominatimService _nominatimService = NominatimService();
   final WeatherService _weatherService = WeatherService();
+  CityLocation currentLocation = CityLocation(id: -1, name: "Ma position", latitude: 47.845431, longitude: 1.937851);
   LatLng center = const LatLng(47.845431, 1.937851);
-  String latitude = "47.845431";
-  String longitude = "1.937851";
-  String? cityName = "Ma Position";
   WeatherData? weatherData;
   String? error;
+  
+  bool isLoading = false;
 
   // Initialise la position actuelle
   Future<void> init() async {
+	isLoading = true;
+	notifyListeners();
+
 	final pos = await _locationService.getCurrentPosition();
 	if (pos == null) return;
 
 	center = LatLng(pos.latitude, pos.longitude);
-	latitude = pos.latitude.toString();
-	longitude = pos.longitude.toString();
+	currentLocation = CityLocation(id: -1, name: "Ma position", latitude: pos.latitude, longitude: pos.longitude);
 
 	final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
 	if (city != null){
-		cityName = city;
+		currentLocation = CityLocation(id: -1, name: city, latitude: pos.latitude, longitude: pos.longitude);
 		weatherData = await getWeather(city);
 	}
+	isLoading = false;
 	notifyListeners();
   }
 
   // Recherche une ville par son nom
   Future<void> searchCity(String city) async {
 	try{
-
+	isLoading = true;
+	notifyListeners();
 	if (city.trim().isEmpty) {
 	  error = "Nom de ville invalide";
+	  isLoading = false;
 	  notifyListeners();
 	  return;
 	}
@@ -52,30 +58,21 @@ class MapProvider extends ChangeNotifier {
 
 	if (result == null) {
 	  error = "Ville introuvable";
+	  isLoading = false;
 	  notifyListeners();
 	  return;
 	}
 
 	center = LatLng(result.latitude, result.longitude);
-	latitude = result.latitude.toString();
-	longitude = result.longitude.toString();
-  	cityName = city;
+	currentLocation = CityLocation(id: result.id, name: city, latitude: result.latitude, longitude: result.longitude);
 	weatherData = await getWeather(city);
 
 	} catch (e) {
 	  error = "Erreur inattendue : $e";
 	}
 
-
+	isLoading = false;
 	notifyListeners();
-  }
-
-  // Met a jour la ville depuis les favoris
-  void setCityFromFavorites(String city, LatLng newCenter) {
-    center = newCenter;
-    latitude = newCenter.latitude.toString();
-    longitude = newCenter.longitude.toString();
-    notifyListeners();
   }
 
   Future<WeatherData?> getWeather(String city) async {

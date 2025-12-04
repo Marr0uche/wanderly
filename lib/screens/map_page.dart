@@ -50,10 +50,13 @@ class _MapPageState extends State<MapPage> {
               children: [
                 TextField(
                   controller: _cityController,
-                  decoration: const InputDecoration(
+                  decoration: InputDecoration(
                     hintText: "Rechercher une ville...",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.search),
+                    border: const OutlineInputBorder(),
+                    suffixIcon: IconButton(
+						icon: const Icon(Icons.search),
+						onPressed: () => mapVM.searchCity(_cityController.text),
+					),
                   ),
                   onSubmitted: mapVM.searchCity,
                 ),
@@ -80,7 +83,7 @@ class _MapPageState extends State<MapPage> {
 						Expanded(
 							child: Center(
 								child: Text(
-									mapVM.cityName ?? "Ville inconnue",
+									mapVM.currentLocation.name,
 									textAlign: TextAlign.center,
 									style: const TextStyle(
 										fontSize: 30,
@@ -96,17 +99,17 @@ class _MapPageState extends State<MapPage> {
 								alignment: Alignment.centerRight,
 								child: IconButton(
 									icon: Icon(
-										favVM.favorites.any((c) => c.name == mapVM.cityName)
+										favVM.favorites.any((c) => c.name == mapVM.currentLocation.name)
 											? Icons.favorite
 											: Icons.favorite_border,
 										color: Colors.red,
 									),
 									onPressed: () {
-										if (mapVM.cityName == null) return;
 										final city = CityLocation(
-										name: mapVM.cityName!,
-										latitude: double.tryParse(mapVM.latitude) ?? 0.0,
-										longitude: double.tryParse(mapVM.longitude) ?? 0.0,
+											id: mapVM.currentLocation.id,
+											name: mapVM.currentLocation.name,
+											latitude: mapVM.currentLocation.latitude,
+											longitude: mapVM.currentLocation.longitude,
 										);
 										favVM.favorites.contains(city)
 											? favVM.removeFavorite(city)
