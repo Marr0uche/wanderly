@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
+import 'package:wanderly/models/Lieu.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../models/city_location.dart';
@@ -138,8 +141,45 @@ class _MapPageState extends State<MapPage> {
 				iconCode: "01d",
 			  ),
         ),
-
-         Container(
+		SizedBox(
+			height: 45,
+			child: ListView(
+				scrollDirection: Axis.horizontal,
+				physics: const BouncingScrollPhysics(),
+           		shrinkWrap: true, 
+				children: [
+					_categoryButton(context, "parks", "Parcs"),
+					_categoryButton(context, "museums", "Musées"),
+					_categoryButton(context, "stations", "Gares"),
+					_categoryButton(context, "universities", "Universités"),
+					_categoryButton(context, "tourism", "Attractions"),
+					Padding(
+						padding: const EdgeInsets.symmetric(horizontal: 6),
+						child: TextButton(
+							child: Text('Tout Sélectionner'),
+							onPressed: () => mapVM.activateAll(),
+							style: TextButton.styleFrom(
+					          foregroundColor: Theme.of(context).colorScheme.onPrimary,
+					          backgroundColor: Theme.of(context).colorScheme.primary
+							  
+							),
+						),
+					),
+					Padding(
+						padding: const EdgeInsets.symmetric(horizontal: 6),
+						child: TextButton(
+							child: Text('Tout Désélectionner'),
+							onPressed: () => mapVM.clearCategories(),
+							style: TextButton.styleFrom(
+								foregroundColor: Theme.of(context).colorScheme.onPrimary,
+								backgroundColor: Theme.of(context).colorScheme.primary,
+							),
+						),
+					),
+				],
+			),
+        ),
+		Container(
 			height: MediaQuery.of(context).size.height * 0.40,
             margin: const EdgeInsets.all(8),
 			decoration: BoxDecoration(
@@ -170,17 +210,34 @@ class _MapPageState extends State<MapPage> {
                   ),
                   MarkerLayer(
                     markers: [
-                      Marker(
-						point: mapVM.center,
-						width: 40,
-						height: 40,
-						alignment: Alignment.topCenter,
-						child: const Icon(
-							Icons.location_on,
-							color: Colors.red,
-							size: 40,
+						Marker(
+							width: 40,
+							height: 40,
+							point: LatLng(
+								mapVM.currentLocation.latitude,
+								mapVM.currentLocation.longitude,
+							),
+							child: const Icon(
+								Icons.my_location,
+								color: Colors.red,
+								size: 40,
+							),
 						),
-					  )
+					  ...mapVM.lieux.map((p) {
+						if(p.name != "Lieu sans nom"){ 
+							return Marker(
+								width: 35,
+								height: 35,
+								point: LatLng(p.latitude, p.longitude),
+								child: GestureDetector(
+									onTap: () => _openPlaceDetails(context, p),
+									child: Icon( Icons.location_on, color: p.iconColor,size: 35),
+								),
+							);
+						}
+						return null;
+					  }).whereType<Marker>()
+					  
                     ],
                   ),
                 ],
@@ -206,4 +263,139 @@ class _MapPageState extends State<MapPage> {
       ],
     );
   }
+}
+
+void _openPlaceDetails(BuildContext context, Lieu lieu) {
+  showModalBottomSheet(
+    context: context,
+    isScrollControlled: true,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    builder: (context) {
+      return DraggableScrollableSheet(
+        expand: false,
+        initialChildSize: 0.3,
+        minChildSize: 0.3,
+        maxChildSize: 0.95,
+        builder: (context, scrollController) {
+          return SingleChildScrollView(
+            controller: scrollController,
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    lieu.name,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+
+                  const SizedBox(height: 10),
+
+                  // Adresse
+                  if (lieu.tags["addr:street"] != null)
+                    Text(
+                      "${lieu.tags["addr:housenumber"] ?? ""} ${lieu.tags["addr:street"]}",
+                      style: const TextStyle(fontSize: 16, color: Colors.grey),
+                    ),
+
+                  const SizedBox(height: 8),
+
+                  // Site Web cliquable
+                  if (lieu.tags["website"] != null || lieu.tags["contact:website"] != null)
+                    InkWell(
+                      onTap: () => launchUrl(Uri.parse(lieu.tags["website"] ?? lieu.tags["contact:website"])),
+                      child: Text(
+                        "Site web : ${lieu.tags["website"] ?? lieu.tags["contact:website"]}",
+                        style: const TextStyle(
+                          fontSize: 16,
+                          color: Colors.blue,
+                          decoration: TextDecoration.underline,
+                        ),
+                      ),
+                    ),
+
+                 	 // Téléphone
+					if (lieu.tags["phone"] != null)
+						Text("Téléphone : ${lieu.tags["phone"]}"),
+
+					if (lieu.tags["contact:phone"] != null)
+						Text(
+							"Téléphone : ${lieu.tags["contact:phone"]}",
+							style: const TextStyle(fontSize: 16),
+						),
+					
+					if (lieu.tags["contact:email"] != null)
+						Text(
+							"Email : ${lieu.tags["contact:email"]}",
+							style: const TextStyle(fontSize: 16),
+						),
+
+					if (lieu.tags.containsKey("network"))
+						Text("${lieu.tags["network"]}"),
+						
+					if (lieu.tags.containsKey("operator"))
+						Text("${lieu.tags["operator"]}"),
+
+                  const SizedBox(height: 15),
+
+                  // Image avec gestion erreurs + fade-in
+                  if (lieu.tags["image"] != null)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(12),
+                      child: Image.network(
+                        lieu.tags["image"],
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stack) {
+                          return const Text(
+                            "Image indisponible",
+                            style: TextStyle(color: Colors.grey),
+                          );
+                        },
+                      ),
+                    ),
+
+                  const SizedBox(height: 20),
+
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.favorite_border,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {},
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    },
+  );
+}
+
+Widget _categoryButton(BuildContext context, String key, String label) {
+	final mapVM = Provider.of<MapProvider>(context);
+
+	final bool selected = mapVM.activeCategories.contains(key);
+
+	return Padding(
+		padding: const EdgeInsets.symmetric(horizontal: 6),
+		child: ChoiceChip(
+			label: Text(label),
+			labelStyle: TextStyle(color: selected ? Theme.of(context).colorScheme.onPrimary : null),
+			checkmarkColor: Theme.of(context).colorScheme.onPrimary,
+			selectedColor: Theme.of(context).colorScheme.primary,
+			selected: selected,
+			onSelected: (_) => mapVM.toggleCategory(key),
+		),
+	);
 }
