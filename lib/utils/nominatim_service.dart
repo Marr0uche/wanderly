@@ -18,10 +18,30 @@ class NominatimService {
     final data = jsonDecode(response.body);
     if (data.isEmpty) return null;
 
-   return CityLocation( name: data[0]["display_name"] ?? city, 
-   latitude: double.parse(data[0]["lat"]), longitude: double.parse(data[0]["lon"]),
+   return CityLocation( id: data[0]["place_id"], name: data[0]["name"] ?? city, 
+   		latitude: double.parse(data[0]["lat"]), longitude: double.parse(data[0]["lon"]),
     );
   }
+
+  Future<List<String>> getSuggestions(String city) async {
+    if (city.length < 2) return [];
+
+    final url = Uri.parse(
+      "https://nominatim.openstreetmap.org/search?q=$city&format=json&limit=5",
+    );
+
+    final response = await http.get(
+      url,
+      headers: {'User-Agent': 'wanderly/1.0'},
+    );
+
+    if (response.statusCode != 200) return [];
+
+    final List data = jsonDecode(response.body);
+
+    return data.map((e) => e["display_name"] as String).toList();
+  }
+
 
   // Recherche inversee : a partir de lat/lon, obtenir le nom de la ville
   Future<String?> getCityNameFromCoordinates(double lat, double lon) async {
