@@ -44,6 +44,7 @@ class OverpassService {
 		"stations": '["railway"="station"]',
 		"universities": '["amenity"="university"]',
 		"tourism": '["tourism"="attraction"]', // attrape-tout
+    "restaurants": '["amenity"="restaurant"]',
 	};
 
 	String buildOverpassFilters(Set<String> categories, double lat, double lon, int radius) {

@@ -21,7 +21,7 @@ class FavoritesProvider extends ChangeNotifier {
 	}
 
 	Future<void> removeFavorite(CityLocation city) async {
-		await Dbhelper.instance.deleteFavorite(city.id!);
+		await Dbhelper.instance.deleteFavorite(city.id);
 		favorites.removeWhere((c) => c.id == city.id);
 		notifyListeners();
 	}
