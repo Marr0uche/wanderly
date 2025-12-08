@@ -119,6 +119,7 @@ class MapProvider extends ChangeNotifier {
 			"stations",
 			"universities",
 			"tourism",
+      "restaurants"
 		};
 		loadPlaces();
 	}
