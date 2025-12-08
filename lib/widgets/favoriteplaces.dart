@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import '../models/favoriteplace_item.dart';
+import '../models/Lieu.dart';
 import '../screens/detail_screen.dart';
 
 class FavoritePlacesScroller extends StatefulWidget {
-  final List<FavoritePlaceItem> items;
+  final List<Lieu> items;
 
   const FavoritePlacesScroller({super.key, required this.items});
 
@@ -85,7 +85,7 @@ class _FavoritePlacesScrollerState extends State<FavoritePlacesScroller> {
                               ClipRRect(
                                 borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                                 child: Image.network(
-                                  item.image,
+                                  item.tags["image"] ?? "",
                                   height: 120,
                                   width: double.infinity,
                                   fit: BoxFit.cover,
@@ -94,7 +94,7 @@ class _FavoritePlacesScrollerState extends State<FavoritePlacesScroller> {
                               Padding(
                                 padding: const EdgeInsets.all(8.0),
                                 child: Text(
-                                  item.title,
+                                  item.name,
                                   textAlign: TextAlign.center,
                                   style: TextStyle(
                                     fontWeight:

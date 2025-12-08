@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import '../models/city_location.dart';
-import '../models/favoriteplace_item.dart';
+import '../models/Lieu.dart';
 
 class Dbhelper {
   static final Dbhelper instance = Dbhelper._instance();
@@ -40,20 +40,16 @@ class Dbhelper {
     await db.execute('''
       CREATE TABLE FavoritePlaces (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        placeId TEXT NOT NULL,
-        cityName TEXT NOT NULL,
+        cityId INTEGER NOT NULL,
         name TEXT NOT NULL,
         lat REAL NOT NULL,
         lon REAL NOT NULL,
-        imageUrl TEXT,
         tags TEXT
       )
     ''');
   }
 
-  // -------------------------
-  // CITIES FAVORITES CRUD
-  // -------------------------
+ 
   Future<int> insertFavorite(CityLocation favorite) async {
     final dbClient = await db;
     return await dbClient.insert('Favorites', favorite.toMap());
@@ -82,38 +78,38 @@ class Dbhelper {
   }
 
   
-  Future<int> insertFavoritePlace(FavoritePlaceItem place, String cityName) async {
-  final dbClient = await db;
-  return await dbClient.insert('FavoritePlaces', place.toMap(cityName));
-}
+	Future<int> insertFavoritePlace(Lieu place) async {
+		final dbClient = await db;
+		return await dbClient.insert('FavoritePlaces', place.toMap());
+	}
 
-  Future<List<FavoritePlaceItem>> fetchFavoritePlaces(String cityName) async {
-    final dbClient = await db;
-    final maps = await dbClient.query(
-      'FavoritePlaces',
-      where: 'cityName = ?',
-      whereArgs: [cityName],
-    );
+  Future<List<Lieu>> fetchFavoritePlaces(int cityId) async {
+		final dbClient = await db;
+		final maps = await dbClient.query(
+			'FavoritePlaces',
+			where: 'cityId = ?',
+			whereArgs: [cityId],
+		);
 
-    return maps.map((m) => FavoritePlaceItem.fromMap(m)).toList();
-  }
+		return maps.map((m) => Lieu.fromMap(m)).toList();
+	}
 
-  Future<int> deleteFavoritePlace(String placeId) async {
-    final dbClient = await db;
-    return await dbClient.delete(
-      'FavoritePlaces',
-      where: 'placeId = ?',
-      whereArgs: [placeId],
-    );
-  }
+  Future<int> deleteFavoritePlace(int placeId) async {
+		final dbClient = await db;
+		return await dbClient.delete(
+		'FavoritePlaces',
+		where: 'id = ?',
+		whereArgs: [placeId],
+		);
+	}
 
-  Future<bool> isFavoritePlace(String placeId) async {
-    final dbClient = await db;
-    final result = await dbClient.query(
-      'FavoritePlaces',
-      where: 'placeId = ?',
-      whereArgs: [placeId],
-    );
-    return result.isNotEmpty;
-  }
+  Future<bool> isFavoritePlace(int placeId) async {
+		final dbClient = await db;
+		final result = await dbClient.query(
+		'FavoritePlaces',
+		where: 'id = ?',
+		whereArgs: [placeId],
+		);
+		return result.isNotEmpty;
+	}
 }

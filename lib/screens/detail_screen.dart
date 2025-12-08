@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import '../models/favoriteplace_item.dart';
+import '../models/Lieu.dart';
 
 class DetailScreen extends StatelessWidget {
-  final FavoritePlaceItem item;
+  final Lieu item;
 
   const DetailScreen({super.key, required this.item});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(item.title)),
+      appBar: AppBar(title: Text(item.name)),
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             Hero(
-              tag: item.image,
+              tag: item.tags["image"] ?? "",
               child: Image.network(
-                item.image,
+                item.tags["image"] ?? "",
                 fit: BoxFit.cover,
                 height: 250,
                 errorBuilder: (context, error, stack) {
@@ -32,20 +32,13 @@ class DetailScreen extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                item.description,
-                style: const TextStyle(fontSize: 16),
+                "Adresse: ${item.tags["addr:street"] ?? "N/A"}",
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Text(
-                "Adresse: ${item.lieu.tags["addr:street"] ?? "N/A"}",
-              ),
-            ),
-            if (item.lieu.tags["website"] != null)
+            if (item.tags["website"] != null)
               Padding(
                 padding: const EdgeInsets.all(16.0),
-                child: Text("Site web: ${item.lieu.tags["website"]}"),
+                child: Text("Site web: ${item.tags["website"]}"),
               ),
           ],
         ),
