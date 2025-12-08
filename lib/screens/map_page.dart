@@ -91,7 +91,7 @@ class _MapPageState extends State<MapPage> {
                   Expanded(
                     child: Center(
                       child: Text(
-                        mapVM.currentLocation.name,
+                        mapVM.currentLocation.cityName,
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 30,
@@ -108,19 +108,14 @@ class _MapPageState extends State<MapPage> {
                       child: IconButton(
                         icon: Icon(
                           favVM.favorites.any(
-                                (c) => c.name == mapVM.currentLocation.name,
+                                (c) => c.cityKey == mapVM.currentLocation.cityKey,
                               )
                               ? Icons.favorite
                               : Icons.favorite_border,
                           color: Colors.red,
                         ),
                         onPressed: () {
-                          final city = CityLocation(
-                            id: mapVM.currentLocation.id,
-                            name: mapVM.currentLocation.name,
-                            latitude: mapVM.currentLocation.latitude,
-                            longitude: mapVM.currentLocation.longitude,
-                          );
+							final city = mapVM.currentLocation;
                           favVM.favorites.contains(city)
                               ? favVM.removeFavorite(city)
                               : favVM.addFavorite(city);
@@ -223,7 +218,7 @@ class _MapPageState extends State<MapPage> {
                     Marker(
                       width: 40,
                       height: 40,
-                      point: LatLng(mapVM.currentLocation.latitude, mapVM.currentLocation.longitude),
+                      point: LatLng(mapVM.currentLocation.cityLat, mapVM.currentLocation.cityLong),
                       child: const Icon(Icons.my_location, color: Colors.red, size: 40),
                     ),
                     ...mapVM.lieux.map((p) {
@@ -247,13 +242,13 @@ class _MapPageState extends State<MapPage> {
           ),
         ),
 
-        // Favoris filtrés par cityId
+        // Favoris filtrés par cityKey
         Builder(
           builder: (_) {
-            final currentCityId = mapVM.currentLocation.id;
+            final currentCityKey = mapVM.currentLocation.cityKey;
 
             final favoritesInCity = favoritePlacesVM.favoritePlaces
-                .where((f) => f.cityId == currentCityId)
+                .where((f) => f.cityKey == currentCityKey)
                 .toList();
 
             return favoritesInCity.isNotEmpty

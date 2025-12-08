@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 class Lieu {
@@ -6,7 +8,7 @@ class Lieu {
 	final double latitude;
 	final double longitude;
 	final Map<String, dynamic> tags;
-	final int cityId;
+	final String cityKey;
 
 	Lieu({
 		required this.id,
@@ -14,7 +16,7 @@ class Lieu {
 		required this.latitude,
 		required this.longitude,
 		required this.tags,
-		required this.cityId,
+		required this.cityKey,
 	});
 
 	Color get iconColor {
@@ -32,12 +34,12 @@ class Lieu {
 			name: map['name'],
 			latitude: map['lat'],
 			longitude: map['lon'],
-			tags: Map<String, dynamic>.from(map['tags']), 
-			cityId: map['cityId'],
+			tags: jsonDecode(map['tags']), 
+			cityKey: map['cityKey'],
 		);
 	}
 
-	factory Lieu.fromJson(Map<String, dynamic> json, int cityId) {
+	factory Lieu.fromJson(Map<String, dynamic> json, String cityKey) {
 		final tags = json["tags"] ?? {};
 
 		return Lieu(
@@ -46,7 +48,7 @@ class Lieu {
 			latitude: (json["lat"] ?? json["center"]?["lat"])?.toDouble() ?? 0,
 			longitude: (json["lon"] ?? json["center"]?["lon"])?.toDouble() ?? 0,
 			tags: tags,
-			cityId: cityId,
+			cityKey: cityKey,
 		);
 	}
 
@@ -56,8 +58,8 @@ class Lieu {
 			'name': name,
 			'lat': latitude,
 			'lon': longitude,
-			'tags': tags.toString(),
-			'cityId': cityId,
+			'tags': jsonEncode(tags),
+			'cityKey': cityKey,
 		};
 	}
 
@@ -68,12 +70,12 @@ class Lieu {
 			latitude: latitude,
 			longitude: longitude,
 			tags: tags,
-			cityId: cityId,
+			cityKey: cityKey,
 		);
 	}
 
 	@override
 	String toString() {
-		return '$name{id: $id,\n latitude: $latitude,\n longitude: $longitude,\n tags: $tags,\n cityId: $cityId}\n\n';
+		return '$name{id: $id,\n latitude: $latitude,\n longitude: $longitude,\n tags: $tags,\n cityKey: $cityKey}\n\n';
 	}
 }

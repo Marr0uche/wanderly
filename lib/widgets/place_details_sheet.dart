@@ -52,7 +52,7 @@ class PlaceDetailsSheet extends StatelessWidget {
                             color: Colors.red,
                           ),
                           onPressed: () {
-                            favoritePlacesVM.favoritePlaces.contains(lieu)
+							favoritePlacesVM.isPlaceFavorite(lieu)
                                 ? favoritePlacesVM.removeFavoritePlace(lieu)
                                 : favoritePlacesVM.addFavoritePlace(lieu);
 						  },

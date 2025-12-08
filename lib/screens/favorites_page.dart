@@ -20,11 +20,11 @@ class FavoritesPage extends StatelessWidget {
 					final city = favVM.favorites[index];
 					return ListTile(
 						onTap: () {
-							mapVM.searchCity(city.name);
+							mapVM.searchCity(city.cityName);
 							Navigator.pop(context, city);
 						},
-						title: Text(city.name),
-						subtitle: Text("Lat: ${city.latitude}, Lon: ${city.longitude}"),
+						title: Text(city.cityName),
+						subtitle: Text("Lat: ${city.cityLat}, Lon: ${city.cityLong}"),
 						trailing: IconButton(
 							icon: const Icon(Icons.delete),
 							onPressed: () => favVM.removeFavorite(city),

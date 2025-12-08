@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../models/Lieu.dart';
+import '../widgets/place_details_sheet.dart';
 import '../screens/detail_screen.dart';
 
 class FavoritePlacesScroller extends StatefulWidget {
@@ -74,12 +75,14 @@ class _FavoritePlacesScrollerState extends State<FavoritePlacesScroller> {
                       child: Opacity(
                         opacity: isCenter ? 1 : 0.4, // centre = clair | autres = sombre
                         child: GestureDetector(
-                          onTap: () => Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (_) => DetailScreen(item: item),
-                            ),
-                          ),
+                          onTap: () => showModalBottomSheet(
+										context: context,
+										constraints: const BoxConstraints(maxWidth: double.infinity),
+										isScrollControlled: true,
+										builder: (context) {
+										return PlaceDetailsSheet(lieu: item);
+										},
+									),
                           child: Column(
                             children: [
                               ClipRRect(
@@ -105,12 +108,14 @@ class _FavoritePlacesScrollerState extends State<FavoritePlacesScroller> {
                               if (isCenter)
                                 TextButton(
                                   onPressed: () {
-                                    Navigator.push(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (_) => DetailScreen(item: item),
-                                      ),
-                                    );
+                                      showModalBottomSheet(
+										context: context,
+										constraints: const BoxConstraints(maxWidth: double.infinity),
+										isScrollControlled: true,
+										builder: (context) {
+										return PlaceDetailsSheet(lieu: item);
+										},
+									);
                                   },
                                   child: const Text("Voir détails"),
                                 )

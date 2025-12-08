@@ -3,7 +3,7 @@ import 'package:wanderly/models/city_location.dart';
 import '../db/database_helper.dart';
 
 class FavoritesProvider extends ChangeNotifier {
-  List<CityLocation> favorites = [];
+  	List<CityLocation> favorites = [];
 
 	FavoritesProvider() {
 		loadFavorites();
@@ -21,8 +21,8 @@ class FavoritesProvider extends ChangeNotifier {
 	}
 
 	Future<void> removeFavorite(CityLocation city) async {
-		await Dbhelper.instance.deleteFavorite(city.id);
-		favorites.removeWhere((c) => c.id == city.id);
+		await Dbhelper.instance.deleteFavorite(city.osmId);
+		favorites.removeWhere((c) => c.osmId == city.osmId);
 		notifyListeners();
 	}
 }

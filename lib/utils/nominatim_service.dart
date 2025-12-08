@@ -16,11 +16,12 @@ class NominatimService {
     if (response.statusCode != 200) return null;
 
     final data = jsonDecode(response.body);
+
     if (data.isEmpty) return null;
 
-   return CityLocation( id: data[0]["place_id"], name: data[0]["name"] ?? city, 
-   		latitude: double.parse(data[0]["lat"]), longitude: double.parse(data[0]["lon"]),
-    );
+	return CityLocation( osmId: data[0]["osm_id"], osmType: data[0]["osm_type"], cityName: data[0]["name"] ?? city, cityKey: CityLocation.createKey(data[0]["osm_id"], data[0]["osm_type"]),
+			cityLat: double.parse(data[0]["lat"]), cityLong: double.parse(data[0]["lon"]),
+		);
   }
 
   Future<List<String>> getSuggestions(String city) async {
@@ -56,10 +57,12 @@ class NominatimService {
     final data = jsonDecode(response.body);
 
     return CityLocation(
-      id: data["place_id"],
-      name: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",
-      latitude: double.parse(data["lat"]),
-      longitude: double.parse(data["lon"]),
+      osmId: data["osm_id"],
+      osmType: data["osm_type"],
+      cityName: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",
+      cityLat: double.parse(data["lat"]),
+      cityLong: double.parse(data["lon"]),
+      cityKey: CityLocation.createKey(data["osm_id"], data["osm_type"]),
     );
   }
 }
