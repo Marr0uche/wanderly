@@ -44,7 +44,7 @@ class NominatimService {
 
 
   // Recherche inversee : a partir de lat/lon, obtenir le nom de la ville
-  Future<String?> getCityNameFromCoordinates(double lat, double lon) async {
+  Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
     final url = Uri.parse(
       "https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json"
     );
@@ -55,9 +55,13 @@ class NominatimService {
 
     final data = jsonDecode(response.body);
 
-    return data['address']['city'] ??
-           data['address']['town'] ??
-           data['address']['village'] ??
-           "Ville inconnue";
+	print("nominatim response: $data");
+
+    return CityLocation(
+      id: data["place_id"],
+      name: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",
+      latitude: double.parse(data["lat"]),
+      longitude: double.parse(data["lon"]),
+    );
   }
 }

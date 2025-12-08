@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'providers/map_provider.dart';
 import 'providers/favorites_provider.dart';
 import 'providers/theme_provider.dart';
+import 'providers/favorite_places_provider.dart';
 
 import 'app.dart';
 
@@ -36,9 +37,10 @@ void main() async {
 	runApp(
 		MultiProvider(
 			providers: [
-			ChangeNotifierProvider(create: (_) => MapProvider()),
-			ChangeNotifierProvider(create: (_) => favoritesProvider),
-			ChangeNotifierProvider(create: (_) => themeProvider),
+				ChangeNotifierProvider(create: (_) => MapProvider()),
+				ChangeNotifierProvider(create: (_) => favoritesProvider),
+				ChangeNotifierProvider(create: (_) => themeProvider),
+				ChangeNotifierProvider(create: (_) => FavoritesProviderPlace(0)),
 			],
 			child: const MyApp(), 
 		),

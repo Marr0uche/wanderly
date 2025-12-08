@@ -2,12 +2,18 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart';
+
 import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
+import '../providers/favorite_places_provider.dart';
+
 import '../models/weather_data.dart';
+import '../models/Lieu.dart';
+import '../models/city_location.dart';
+import '../widgets/favoriteplaces.dart';
+import '../widgets/place_details_sheet.dart';
 import 'favorites_page.dart';
 import 'weather_card.dart';
-import '../widgets/favoriteplaces.dart';
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -32,6 +38,11 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final mapVM = Provider.of<MapProvider>(context);
     final favVM = Provider.of<FavoritesProvider>(context);
+	final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context);
+
+	WidgetsBinding.instance.addPostFrameCallback(
+      (_) => _mapController.move(mapVM.center, 12.0),
+    );
 
     return Column(
       children: [
@@ -89,6 +100,34 @@ class _MapPageState extends State<MapPage> {
                       ),
                     ),
                   ),
+
+				  SizedBox(
+                    width: 120,
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: IconButton(
+                        icon: Icon(
+                          favVM.favorites.any(
+                                (c) => c.name == mapVM.currentLocation.name,
+                              )
+                              ? Icons.favorite
+                              : Icons.favorite_border,
+                          color: Colors.red,
+                        ),
+                        onPressed: () {
+                          final city = CityLocation(
+                            id: mapVM.currentLocation.id,
+                            name: mapVM.currentLocation.name,
+                            latitude: mapVM.currentLocation.latitude,
+                            longitude: mapVM.currentLocation.longitude,
+                          );
+                          favVM.favorites.contains(city)
+                              ? favVM.removeFavorite(city)
+                              : favVM.addFavorite(city);
+                        },
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ],
@@ -127,23 +166,23 @@ class _MapPageState extends State<MapPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: TextButton(
-                  child: const Text('Tout Sélectionner'),
                   onPressed: () => mapVM.activateAll(),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
+                  child: const Text('Tout Sélectionner'),
                 ),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: TextButton(
-                  child: const Text('Tout Désélectionner'),
                   onPressed: () => mapVM.clearCategories(),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     backgroundColor: Theme.of(context).colorScheme.primary,
                   ),
+                  child: const Text('Tout Désélectionner'),
                 ),
               ),
             ],
@@ -213,8 +252,8 @@ class _MapPageState extends State<MapPage> {
           builder: (_) {
             final currentCityId = mapVM.currentLocation.id;
 
-            final favoritesInCity = favVM.favorites
-                .where((f) => f.id == currentCityId)
+            final favoritesInCity = favoritePlacesVM.favoritePlaces
+                .where((f) => f.cityId == currentCityId)
                 .toList();
 
             return favoritesInCity.isNotEmpty
@@ -234,6 +273,17 @@ class _MapPageState extends State<MapPage> {
       ],
     );
   }
+}
+
+void _openPlaceDetails(BuildContext context, Lieu lieu) {
+  showModalBottomSheet(
+    context: context,
+	constraints: const BoxConstraints(maxWidth: double.infinity),
+    isScrollControlled: true,
+    builder: (context) {
+      return PlaceDetailsSheet(lieu: lieu);
+    },
+  );
 }
 
 Widget _categoryButton(BuildContext context, String key, String label) {

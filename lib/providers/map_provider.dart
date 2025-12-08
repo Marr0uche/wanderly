@@ -36,10 +36,10 @@ class MapProvider extends ChangeNotifier {
 
 		final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
 		if (city != null){
-			currentLocation = CityLocation(id: -1, name: city, latitude: pos.latitude, longitude: pos.longitude);
-			weatherData = await getWeather(city);
+			currentLocation = city;
+			weatherData = await getWeather(city.name);
 			activateAll();
-			await loadPlaces();
+			//await loadPlaces();
 		}
 		isLoading = false;
 		notifyListeners();
@@ -119,7 +119,7 @@ class MapProvider extends ChangeNotifier {
 			"stations",
 			"universities",
 			"tourism",
-      "restaurants"
+      		"restaurants"
 		};
 		loadPlaces();
 	}
@@ -132,9 +132,10 @@ class MapProvider extends ChangeNotifier {
 			lon: currentLocation.longitude,
 			radius: 2000,
 			categories: activeCategories,
-		)).map((e) => Lieu.fromJson(e)).toList();
+		)).map((e) => Lieu.fromJson(e, currentLocation.id)).toList();
 
-		print("lieux: $lieux");
+		print("Lieux: $lieux");
+
 		notifyListeners();
   	}
 

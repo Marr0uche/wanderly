@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'detail_screen.dart';
-import '../models/favoriteplace_item.dart';
+import '../models/Lieu.dart';
 
 class FavoritePlacesList extends StatelessWidget {
-  final List<FavoritePlaceItem> items;
+  final List<Lieu> items;
 
   const FavoritePlacesList({super.key, required this.items});
 
@@ -42,11 +42,11 @@ class FavoritePlacesList extends StatelessWidget {
                   children: [
                     Expanded(
                       child: Hero(
-                        tag: item.image,
+                        tag: item.tags["image"] ?? "",
                         child: ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(15)),
                           child: Image.network(
-                            item.image,
+                            item.tags["image"] ?? "",
                             width: 150,
                             fit: BoxFit.cover,
                             errorBuilder: (context, error, stack) {
@@ -62,7 +62,7 @@ class FavoritePlacesList extends StatelessWidget {
                     Padding(
                       padding: const EdgeInsets.all(8.0),
                       child: Text(
-                        item.title,
+                        item.name,
                         style: const TextStyle(fontWeight: FontWeight.bold),
                         textAlign: TextAlign.center,
                       ),
