@@ -55,8 +55,6 @@ class NominatimService {
 
     final data = jsonDecode(response.body);
 
-	print("nominatim response: $data");
-
     return CityLocation(
       id: data["place_id"],
       name: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",

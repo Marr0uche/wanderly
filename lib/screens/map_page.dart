@@ -166,7 +166,7 @@ class _MapPageState extends State<MapPage> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 6),
                 child: TextButton(
-                  onPressed: () => mapVM.activateAll(),
+                  onPressed: () async => await mapVM.activateAll(),
                   style: TextButton.styleFrom(
                     foregroundColor: Theme.of(context).colorScheme.onPrimary,
                     backgroundColor: Theme.of(context).colorScheme.primary,
@@ -298,7 +298,7 @@ Widget _categoryButton(BuildContext context, String key, String label) {
       checkmarkColor: Theme.of(context).colorScheme.onPrimary,
       selectedColor: Theme.of(context).colorScheme.primary,
       selected: selected,
-      onSelected: (_) => mapVM.toggleCategory(key),
+      onSelected: (_) async => await mapVM.toggleCategory(key),
     ),
   );
 }

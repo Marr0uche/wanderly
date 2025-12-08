@@ -33,8 +33,6 @@ class OverpassService {
 
 		final data = jsonDecode(response.body);
 
-		print(data);
-
 		return (data["elements"] as List).cast<Map<String, dynamic>>();
 	}
 
