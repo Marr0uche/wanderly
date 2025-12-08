@@ -39,7 +39,7 @@ class MapProvider extends ChangeNotifier {
 			currentLocation = city;
 			weatherData = await getWeather(city.name);
 			activateAll();
-			//await loadPlaces();
+			await loadPlaces();
 		}
 		isLoading = false;
 		notifyListeners();
@@ -76,7 +76,6 @@ class MapProvider extends ChangeNotifier {
 			weatherData = await getWeather(city);
 			await loadPlaces();
 
-
 		} catch (e) {
 			error = "Erreur inattendue : $e";
 		}
@@ -91,7 +90,7 @@ class MapProvider extends ChangeNotifier {
 
 	/* Tout ce qui est lieux */
 
-	void toggleCategory(String category) {
+	Future<void> toggleCategory(String category) async {
 		isLoading = true;
 		notifyListeners();
 
@@ -100,7 +99,7 @@ class MapProvider extends ChangeNotifier {
 		} else {
 			activeCategories.add(category);
 		}
-		loadPlaces();
+		await loadPlaces();
 
 		isLoading = false;
 		notifyListeners();
@@ -112,7 +111,10 @@ class MapProvider extends ChangeNotifier {
 		notifyListeners();
 	}
 
-	void activateAll() {
+	Future<void> activateAll() async {
+		isLoading = true;
+		notifyListeners();
+
 		activeCategories = {
 			"parks",
 			"museums",
@@ -121,10 +123,13 @@ class MapProvider extends ChangeNotifier {
 			"tourism",
       		"restaurants"
 		};
-		loadPlaces();
+		await loadPlaces();
+		isLoading = false;
+		notifyListeners();
 	}
 
 	Future<void> loadPlaces() async {
+
 		if (currentLocation.latitude == 0) return;
 
 		lieux = (await _overpass.fetchPlaces(
@@ -133,8 +138,6 @@ class MapProvider extends ChangeNotifier {
 			radius: 2000,
 			categories: activeCategories,
 		)).map((e) => Lieu.fromJson(e, currentLocation.id)).toList();
-
-		print("Lieux: $lieux");
 
 		notifyListeners();
   	}
