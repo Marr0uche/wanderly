@@ -7,19 +7,21 @@ import '../utils/weather_service.dart';
 import '../models/city_location.dart';
 import '../models/Lieu.dart';
 import '../utils/overpass_service.dart';
+import 'package:provider/provider.dart';
+import 'favorite_places_provider.dart';
 
 class MapProvider extends ChangeNotifier {
 	final LocationService _locationService = LocationService();
 	final NominatimService _nominatimService = NominatimService();
 	final WeatherService _weatherService = WeatherService();
-	CityLocation currentLocation = CityLocation(id: -1, name: "Ma position", latitude: 47.845431, longitude: 1.937851);
+	CityLocation currentLocation = CityLocation(osmId: -1, osmType: "R", cityKey: "R-1", cityName: "Ma position", cityLat: 47.845431, cityLong: 1.937851);
 	LatLng center = const LatLng(47.845431, 1.937851);
 	WeatherData? weatherData;
 	String? error;
 
 	final OverpassService _overpass = OverpassService();
 	List<Lieu> lieux = [];
-	Set<String> activeCategories = {"parks"};
+	Set<String> activeCategories = {"tourism", "restaurants"};
 	
 	bool isLoading = false;
 
@@ -32,13 +34,12 @@ class MapProvider extends ChangeNotifier {
 		if (pos == null) return;
 
 		center = LatLng(pos.latitude, pos.longitude);
-		currentLocation = CityLocation(id: -1, name: "Ma position", latitude: pos.latitude, longitude: pos.longitude);
+		currentLocation = CityLocation(osmId: -1, osmType: "R", cityKey: "R-1", cityName: "Ma position", cityLat: pos.latitude, cityLong: pos.longitude);
 
 		final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
 		if (city != null){
 			currentLocation = city;
-			weatherData = await getWeather(city.name);
-			activateAll();
+			weatherData = await getWeather(currentLocation.cityName);
 			await loadPlaces();
 		}
 		isLoading = false;
@@ -57,12 +58,11 @@ class MapProvider extends ChangeNotifier {
 				return;
 			}
 
-			error = null;
-			notifyListeners();
-
 			city =  city[0].toUpperCase() + city.substring(1);
 
 			final result = await _nominatimService.searchCity(city);
+			print("searchCity result: $result");
+
 
 			if (result == null) {
 				error = "Ville introuvable";
@@ -71,10 +71,15 @@ class MapProvider extends ChangeNotifier {
 				return;
 			}
 
-			center = LatLng(result.latitude, result.longitude);
-			currentLocation = CityLocation(id: result.id, name: city, latitude: result.latitude, longitude: result.longitude);
-			weatherData = await getWeather(city);
+			center = LatLng(result.cityLat, result.cityLong);
+			currentLocation = result;
+			weatherData = await getWeather(currentLocation.cityName);
+			print("getWeather result: $weatherData");
+
 			await loadPlaces();
+			print("loadPlaces done");
+
+
 
 		} catch (e) {
 			error = "Erreur inattendue : $e";
@@ -83,6 +88,8 @@ class MapProvider extends ChangeNotifier {
 		isLoading = false;
 		notifyListeners();
 	}
+
+
 
 	Future<WeatherData?> getWeather(String city) async {
 		return await _weatherService.getWeather(city);
@@ -130,14 +137,14 @@ class MapProvider extends ChangeNotifier {
 
 	Future<void> loadPlaces() async {
 
-		if (currentLocation.latitude == 0) return;
+		if (currentLocation.cityLat == 0) return;
 
 		lieux = (await _overpass.fetchPlaces(
-			lat: currentLocation.latitude,
-			lon: currentLocation.longitude,
-			radius: 2000,
+			lat: currentLocation.cityLat,
+			lon: currentLocation.cityLong,
+			radius: 1200,
 			categories: activeCategories,
-		)).map((e) => Lieu.fromJson(e, currentLocation.id)).toList();
+		)).map((e) => Lieu.fromJson(e, currentLocation.cityKey)).toList();
 
 		notifyListeners();
   	}

@@ -4,14 +4,22 @@ import '../models/Lieu.dart';
 
 class FavoritesProviderPlace extends ChangeNotifier {
 	List<Lieu> favoritePlaces = [];
-	
-	FavoritesProviderPlace(int cityId) {
-		loadFavoritePlaces(cityId);
+	String? lastLoadedCityKey;
+
+	FavoritesProviderPlace();
+
+	Future<void> loadFavoritePlaces(String cityKey) async {
+		favoritePlaces = await Dbhelper.instance.fetchFavoritePlaces(cityKey);
+		lastLoadedCityKey = cityKey;
+		notifyListeners();
+
+		//print("Loaded favorite places for cityKey: $cityKey");
+		//print("Favorite Places: $favoritePlaces");
+		//await Dbhelper.instance.debugPrintFavoritePlaces();
 	}
 
-	Future<void> loadFavoritePlaces(int cityId) async {
-		favoritePlaces = await Dbhelper.instance.fetchFavoritePlaces(cityId);
-		notifyListeners();
+	bool isPlaceFavorite(Lieu place) {
+		return favoritePlaces.any((p) => p.id == place.id);
 	}
 
   	Future<void> addFavoritePlace(Lieu place) async {
@@ -25,5 +33,28 @@ class FavoritesProviderPlace extends ChangeNotifier {
 		favoritePlaces.removeWhere((c) => c.id == place.id);
 		notifyListeners();
 	}
+
+	Future<void> updatePlaceNote(int id, double rating, String? note) async {
+		final dbClient = await Dbhelper.instance.db;
+
+		await dbClient.update(
+			'FavoritePlaces',
+			{'rating': rating, 'note': note},
+			where: 'id = ?',
+			whereArgs: [id],
+		);
+
+		notifyListeners();
+
+		final idx = favoritePlaces.indexWhere((p) => p.id == id);
+		if (idx != -1) {
+			favoritePlaces[idx] = favoritePlaces[idx].copyWithRatNot(
+				rating: rating,
+				note: note,
+			);
+		}
+
+		notifyListeners();
+  }
   
 }

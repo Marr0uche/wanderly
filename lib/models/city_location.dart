@@ -1,50 +1,67 @@
 class CityLocation {
-	final int id;
-	final String name;
-	final double latitude;
-	final double longitude;
+	final int osmId;
+  	final String osmType;
+	final String cityKey;
+	final String cityName;
+	final double cityLat;
+	final double cityLong;
 
 	CityLocation({
-		required this.id,
-		required this.name,
-		required this.latitude,
-		required this.longitude,
+		required this.osmId,
+		required this.osmType,
+		required this.cityKey,
+		required this.cityName,
+		required this.cityLat,
+		required this.cityLong,
 	});
+
+	static String createKey(int osmId, String osmType) {
+		final letter = osmType.isNotEmpty ? osmType[0].toUpperCase() : "U";
+		return "$letter$osmId";
+	}
 
 	factory CityLocation.fromJson(Map<String, dynamic> json) {
 		return CityLocation(
-			id: json['id'] as int,
-			name: json['name'] as String? ?? 'Ville inconnue',
-			latitude: (json['latitude'] as num?)?.toDouble() ?? 0.0,
-			longitude: (json['longitude'] as num?)?.toDouble() ?? 0.0,
+			osmId: json['osm_id'] as int,
+			osmType: json['osm_type'] as String,
+			cityKey: "${(json['osm_type'] as String).isNotEmpty ? (json['osm_type'] as String)[0].toUpperCase() : "U"}${json['osm_id']}",
+			cityName: json['name'] as String? ?? 'Ville inconnue',
+			cityLat: (json['latitude'] as num?)?.toDouble() ?? 0.0,
+			cityLong: (json['longitude'] as num?)?.toDouble() ?? 0.0,
 		);
 	}
 
 
 	Map<String, dynamic> toMap() {
 		return {
-			'id': id,
-			'cityName': name,
-			'cityLat': latitude,
-			'cityLong': longitude,
+			'osmId': osmId,
+			'osmType': osmType,
+			'cityKey': cityKey,
+			'cityName': cityName,
+			'cityLat': cityLat,
+			'cityLong': cityLong,
 		};
 	}
 
 	factory CityLocation.fromMap(Map<String, dynamic> map) {
 		return CityLocation(
-			id: map['id'],
-			name: map['cityName'],
-			latitude: map['cityLat'],
-			longitude: map['cityLong'],
+			osmId: map['osmId'],
+			osmType: map['osmType'],
+			cityKey: map['cityKey'],
+			cityName: map['cityName'],
+			cityLat: map['cityLat'],
+			cityLong: map['cityLong'],
 		);
 	}
 
-	CityLocation copyWith({int? id}) {
+	CityLocation copyWith({int? osmId}) {
 		return CityLocation(
-			id: id ?? this.id,
-			name: name,
-			latitude: latitude,
-			longitude: longitude,
+			osmId: osmId ?? this.osmId,
+			osmType: osmType,
+			cityKey: cityKey,
+			cityName: cityName,
+			cityLat: cityLat,
+			cityLong: cityLong,
 		);
 	}
 
@@ -53,11 +70,10 @@ class CityLocation {
 		if (identical(this, other)) return true;
 		if (other is! CityLocation) return false;
 
-		return (latitude - other.latitude).abs() < 0.0001 &&
-			(longitude - other.longitude).abs() < 0.0001;
+		return other.cityKey == cityKey;
 	}
 
 	@override
 	int get hashCode =>
-		Object.hash((latitude * 10000).round(), (longitude * 10000).round());
+		Object.hash((cityLat * 10000).round(), (cityLong * 10000).round());
 }

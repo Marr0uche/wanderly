@@ -29,7 +29,9 @@ class Dbhelper {
     // Table pour les villes favorites
     await db.execute('''
       CREATE TABLE Favorites (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        osmId INTEGER PRIMARY KEY AUTOINCREMENT,
+		osmType TEXT NOT NULL,
+		cityKey TEXT NOT NULL,
         cityName TEXT NOT NULL,
         cityLat REAL NOT NULL,
         cityLong REAL NOT NULL
@@ -40,11 +42,13 @@ class Dbhelper {
     await db.execute('''
       CREATE TABLE FavoritePlaces (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
-        cityId INTEGER NOT NULL,
+        cityKey TEXT NOT NULL,
         name TEXT NOT NULL,
         lat REAL NOT NULL,
         lon REAL NOT NULL,
-        tags TEXT
+        tags TEXT,
+		rating REAL,    
+  		note TEXT     
       )
     ''');
   }
@@ -57,7 +61,7 @@ class Dbhelper {
 
   Future<List<CityLocation>> fetchFavorites() async {
     final dbClient = await db;
-    final maps = await dbClient.query('Favorites', orderBy: 'id DESC');
+    final maps = await dbClient.query('Favorites', orderBy: 'osmId DESC');
 
     return maps.map((m) => CityLocation.fromMap(m)).toList();
   }
@@ -67,14 +71,22 @@ class Dbhelper {
     return await dbClient.update(
       'Favorites',
       favorite.toMap(),
-      where: 'id = ?',
-      whereArgs: [favorite.id],
+      where: 'osmId = ?',
+      whereArgs: [favorite.osmId],
     );
   }
 
-  Future<int> deleteFavorite(int id) async {
+  Future<int> deleteFavorite(int osmId) async {
     final dbClient = await db;
-    return await dbClient.delete('Favorites', where: 'id = ?', whereArgs: [id]);
+    return await dbClient.delete('Favorites', where: 'osmId = ?', whereArgs: [osmId]);
+  }
+
+
+  Future<void> debugPrintFavoritePlaces() async {
+    final dbClient = await db;
+    final maps = await dbClient.query('FavoritePlaces');
+    print("=== FavoritePlaces Table ===");
+    maps.forEach(print);
   }
 
   
@@ -83,12 +95,12 @@ class Dbhelper {
 		return await dbClient.insert('FavoritePlaces', place.toMap());
 	}
 
-  Future<List<Lieu>> fetchFavoritePlaces(int cityId) async {
+  Future<List<Lieu>> fetchFavoritePlaces(String cityKey) async {
 		final dbClient = await db;
 		final maps = await dbClient.query(
 			'FavoritePlaces',
-			where: 'cityId = ?',
-			whereArgs: [cityId],
+			where: 'cityKey = ?',
+			whereArgs: [cityKey],
 		);
 
 		return maps.map((m) => Lieu.fromMap(m)).toList();

@@ -40,7 +40,22 @@ void main() async {
 				ChangeNotifierProvider(create: (_) => MapProvider()),
 				ChangeNotifierProvider(create: (_) => favoritesProvider),
 				ChangeNotifierProvider(create: (_) => themeProvider),
-				ChangeNotifierProvider(create: (_) => FavoritesProviderPlace(0)),
+				ChangeNotifierProxyProvider<MapProvider, FavoritesProviderPlace>(
+					create: (_) => FavoritesProviderPlace(),
+					update: (_, mapVM, favPlacesVM) {
+						favPlacesVM ??= FavoritesProviderPlace();
+
+						final newCityKey = mapVM.currentLocation.cityKey;
+
+						// Load only if the city changed
+						if (favPlacesVM.lastLoadedCityKey != newCityKey) {
+						favPlacesVM.loadFavoritePlaces(newCityKey);
+						favPlacesVM.lastLoadedCityKey = newCityKey;
+						}
+
+						return favPlacesVM;
+					},
+				),
 			],
 			child: const MyApp(), 
 		),

@@ -16,11 +16,12 @@ class NominatimService {
     if (response.statusCode != 200) return null;
 
     final data = jsonDecode(response.body);
+
     if (data.isEmpty) return null;
 
-   return CityLocation( id: data[0]["place_id"], name: data[0]["name"] ?? city, 
-   		latitude: double.parse(data[0]["lat"]), longitude: double.parse(data[0]["lon"]),
-    );
+	return CityLocation( osmId: data[0]["osm_id"], osmType: data[0]["osm_type"], cityName: data[0]["name"] ?? city, cityKey: CityLocation.createKey(data[0]["osm_id"], data[0]["osm_type"]),
+			cityLat: double.parse(data[0]["lat"]), cityLong: double.parse(data[0]["lon"]),
+		);
   }
 
   Future<List<String>> getSuggestions(String city) async {
@@ -42,24 +43,24 @@ class NominatimService {
     return data.map((e) => e["display_name"] as String).toList();
   }
 
+	Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
+		final url = Uri.parse(
+			"https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json");
 
-  // Recherche inversee : a partir de lat/lon, obtenir le nom de la ville
-  Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
-    final url = Uri.parse(
-      "https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json"
-    );
+		final response = await http.get(url, headers: {'User-Agent': 'wanderly/1.0'});
 
-    final response = await http.get(url, headers: {'User-Agent': 'wanderly/1.0'});
+		if (response.statusCode != 200) return null;
 
-    if (response.statusCode != 200) return null;
+		final data = jsonDecode(response.body);
+		print("getcitynamefromcoordinates: $data");
 
-    final data = jsonDecode(response.body);
+		final name = data["address"]?["city"] ??
+			data["address"]?["town"] ??
+			data["address"]?["village"] ??
+			data["address"]?["municipality"];
 
-    return CityLocation(
-      id: data["place_id"],
-      name: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",
-      latitude: double.parse(data["lat"]),
-      longitude: double.parse(data["lon"]),
-    );
-  }
+		if (name == null) return null;
+
+		return await searchCity(name);
+	}
 }
