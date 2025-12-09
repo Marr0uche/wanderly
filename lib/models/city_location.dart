@@ -54,9 +54,9 @@ class CityLocation {
 		);
 	}
 
-	CityLocation copyWith({int? id}) {
+	CityLocation copyWith({int? osmId}) {
 		return CityLocation(
-			osmId: osmId,
+			osmId: osmId ?? this.osmId,
 			osmType: osmType,
 			cityKey: cityKey,
 			cityName: cityName,

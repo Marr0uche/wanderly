@@ -21,7 +21,7 @@ class MapProvider extends ChangeNotifier {
 
 	final OverpassService _overpass = OverpassService();
 	List<Lieu> lieux = [];
-	Set<String> activeCategories = {"parks"};
+	Set<String> activeCategories = {"tourism", "restaurants"};
 	
 	bool isLoading = false;
 
@@ -39,8 +39,7 @@ class MapProvider extends ChangeNotifier {
 		final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
 		if (city != null){
 			currentLocation = city;
-			weatherData = await getWeather(city.cityName);
-			activateAll();
+			weatherData = await getWeather(currentLocation.cityName);
 			await loadPlaces();
 		}
 		isLoading = false;
@@ -62,6 +61,7 @@ class MapProvider extends ChangeNotifier {
 			city =  city[0].toUpperCase() + city.substring(1);
 
 			final result = await _nominatimService.searchCity(city);
+			print("searchCity result: $result");
 
 
 			if (result == null) {
@@ -73,8 +73,11 @@ class MapProvider extends ChangeNotifier {
 
 			center = LatLng(result.cityLat, result.cityLong);
 			currentLocation = result;
-			weatherData = await getWeather(city);
+			weatherData = await getWeather(currentLocation.cityName);
+			print("getWeather result: $weatherData");
+
 			await loadPlaces();
+			print("loadPlaces done");
 
 
 
@@ -139,7 +142,7 @@ class MapProvider extends ChangeNotifier {
 		lieux = (await _overpass.fetchPlaces(
 			lat: currentLocation.cityLat,
 			lon: currentLocation.cityLong,
-			radius: 2000,
+			radius: 1200,
 			categories: activeCategories,
 		)).map((e) => Lieu.fromJson(e, currentLocation.cityKey)).toList();
 

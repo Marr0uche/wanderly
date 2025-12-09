@@ -33,5 +33,28 @@ class FavoritesProviderPlace extends ChangeNotifier {
 		favoritePlaces.removeWhere((c) => c.id == place.id);
 		notifyListeners();
 	}
+
+	Future<void> updatePlaceNote(int id, double rating, String? note) async {
+		final dbClient = await Dbhelper.instance.db;
+
+		await dbClient.update(
+			'FavoritePlaces',
+			{'rating': rating, 'note': note},
+			where: 'id = ?',
+			whereArgs: [id],
+		);
+
+		notifyListeners();
+
+		final idx = favoritePlaces.indexWhere((p) => p.id == id);
+		if (idx != -1) {
+			favoritePlaces[idx] = favoritePlaces[idx].copyWithRatNot(
+				rating: rating,
+				note: note,
+			);
+		}
+
+		notifyListeners();
+  }
   
 }

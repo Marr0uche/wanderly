@@ -46,7 +46,9 @@ class Dbhelper {
         name TEXT NOT NULL,
         lat REAL NOT NULL,
         lon REAL NOT NULL,
-        tags TEXT
+        tags TEXT,
+		rating REAL,    
+  		note TEXT     
       )
     ''');
   }

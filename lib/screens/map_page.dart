@@ -26,6 +26,8 @@ class _MapPageState extends State<MapPage> {
   final TextEditingController _cityController = TextEditingController();
   final MapController _mapController = MapController();
 
+  LatLng? _lastCenter;
+
   @override
   void initState() {
     super.initState();
@@ -40,9 +42,14 @@ class _MapPageState extends State<MapPage> {
     final favVM = Provider.of<FavoritesProvider>(context);
 	final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context);
 
-	WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _mapController.move(mapVM.center, 12.0),
-    );
+	WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_lastCenter == null ||
+          _lastCenter!.latitude != mapVM.center.latitude ||
+          _lastCenter!.longitude != mapVM.center.longitude) {
+        _mapController.move(mapVM.center, 12.0);
+        _lastCenter = mapVM.center;
+      }
+    });
 
     return Column(
       children: [
@@ -144,45 +151,39 @@ class _MapPageState extends State<MapPage> {
               ),
         ),
 
-        // Boutons catégories
-        SizedBox(
-          height: 45,
-          child: ListView(
-            scrollDirection: Axis.horizontal,
-            physics: const BouncingScrollPhysics(),
-            shrinkWrap: true,
-            children: [
-              _categoryButton(context, "parks", "Parcs"),
-              _categoryButton(context, "museums", "Musées"),
-              _categoryButton(context, "stations", "Gares"),
-              _categoryButton(context, "universities", "Universités"),
-              _categoryButton(context, "tourism", "Attractions"),
-              _categoryButton(context, "restaurants", "Restaurants"),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: TextButton(
-                  onPressed: () async => await mapVM.activateAll(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: const Text('Tout Sélectionner'),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6),
-                child: TextButton(
-                  onPressed: () => mapVM.clearCategories(),
-                  style: TextButton.styleFrom(
-                    foregroundColor: Theme.of(context).colorScheme.onPrimary,
-                    backgroundColor: Theme.of(context).colorScheme.primary,
-                  ),
-                  child: const Text('Tout Désélectionner'),
-                ),
-              ),
-            ],
-          ),
-        ),
+		Padding(
+			padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+			child: Wrap(
+				spacing: 8,
+				runSpacing: 8, // space between rows
+				children: [
+				_categoryButton(context, "parks", "Parcs"),
+				_categoryButton(context, "museums", "Musées"),
+				_categoryButton(context, "stations", "Gares"),
+				_categoryButton(context, "universities", "Universités"),
+				_categoryButton(context, "tourism", "Attractions"),
+				_categoryButton(context, "restaurants", "Restaurants"),
+
+				TextButton(
+					onPressed: () async => await mapVM.activateAll(),
+					style: TextButton.styleFrom(
+					backgroundColor: Theme.of(context).colorScheme.primary,
+					foregroundColor: Theme.of(context).colorScheme.onPrimary,
+					),
+					child: const Text("Tout Sélectionner"),
+				),
+
+				TextButton(
+					onPressed: () => mapVM.clearCategories(),
+					style: TextButton.styleFrom(
+					backgroundColor: Theme.of(context).colorScheme.primary,
+					foregroundColor: Theme.of(context).colorScheme.onPrimary,
+					),
+					child: const Text("Tout Désélectionner"),
+				),
+				],
+			),
+		),
 
         // Carte
         Container(

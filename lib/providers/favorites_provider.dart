@@ -15,8 +15,9 @@ class FavoritesProvider extends ChangeNotifier {
 	}
 
 	Future<void> addFavorite(CityLocation city) async {
-		final id = await Dbhelper.instance.insertFavorite(city);
-		favorites.insert(0, city.copyWith(id: id));
+		final osmId = await Dbhelper.instance.insertFavorite(city);
+		favorites.insert(0, city.copyWith(osmId: osmId));
+		print("Added favorite: ${city.cityName} with id ${city.cityKey}");
 		notifyListeners();
 	}
 

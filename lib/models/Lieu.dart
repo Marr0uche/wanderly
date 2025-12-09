@@ -10,6 +10,9 @@ class Lieu {
 	final Map<String, dynamic> tags;
 	final String cityKey;
 
+	final double? rating; 
+  	final String? note; 
+
 	Lieu({
 		required this.id,
 		required this.name,
@@ -17,6 +20,8 @@ class Lieu {
 		required this.longitude,
 		required this.tags,
 		required this.cityKey,
+		this.rating,
+		this.note,
 	});
 
 	Color get iconColor {
@@ -36,6 +41,8 @@ class Lieu {
 			longitude: map['lon'],
 			tags: jsonDecode(map['tags']), 
 			cityKey: map['cityKey'],
+			rating: map['rating'],
+      		note: map['note'],
 		);
 	}
 
@@ -60,6 +67,8 @@ class Lieu {
 			'lon': longitude,
 			'tags': jsonEncode(tags),
 			'cityKey': cityKey,
+			'rating': rating,
+      		'note': note,
 		};
 	}
 
@@ -73,6 +82,19 @@ class Lieu {
 			cityKey: cityKey,
 		);
 	}
+
+	Lieu copyWithRatNot({double? rating, String? note}) {
+		return Lieu(
+			id: id ,
+			name: name,
+			latitude: latitude,
+			longitude: longitude,
+			tags: tags,
+			cityKey: cityKey,
+			rating: rating ?? this.rating,
+			note: note ?? this.note,
+		);
+  	}
 
 	@override
 	String toString() {

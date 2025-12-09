@@ -43,26 +43,24 @@ class NominatimService {
     return data.map((e) => e["display_name"] as String).toList();
   }
 
+	Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
+		final url = Uri.parse(
+			"https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json");
 
-  // Recherche inversee : a partir de lat/lon, obtenir le nom de la ville
-  Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
-    final url = Uri.parse(
-      "https://nominatim.openstreetmap.org/reverse?lat=$lat&lon=$lon&format=json"
-    );
+		final response = await http.get(url, headers: {'User-Agent': 'wanderly/1.0'});
 
-    final response = await http.get(url, headers: {'User-Agent': 'wanderly/1.0'});
+		if (response.statusCode != 200) return null;
 
-    if (response.statusCode != 200) return null;
+		final data = jsonDecode(response.body);
+		print("getcitynamefromcoordinates: $data");
 
-    final data = jsonDecode(response.body);
+		final name = data["address"]?["city"] ??
+			data["address"]?["town"] ??
+			data["address"]?["village"] ??
+			data["address"]?["municipality"];
 
-    return CityLocation(
-      osmId: data["osm_id"],
-      osmType: data["osm_type"],
-      cityName: data["address"]?["village"] ?? data["address"]?["municipality"] ?? "Ville inconnue",
-      cityLat: double.parse(data["lat"]),
-      cityLong: double.parse(data["lon"]),
-      cityKey: CityLocation.createKey(data["osm_id"], data["osm_type"]),
-    );
-  }
+		if (name == null) return null;
+
+		return await searchCity(name);
+	}
 }
