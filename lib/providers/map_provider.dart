@@ -8,7 +8,7 @@ import '../models/city_location.dart';
 import '../models/Lieu.dart';
 import '../utils/overpass_service.dart';
 import 'package:provider/provider.dart';
-import 'favorite_places_provider.dart';
+import 'favorites_provider.dart';
 
 class MapProvider extends ChangeNotifier {
 	final LocationService _locationService = LocationService();
@@ -148,5 +148,52 @@ class MapProvider extends ChangeNotifier {
 
 		notifyListeners();
   	}
+
+
+    Future<void> loadInitialCity(BuildContext context) async {
+  isLoading = true;
+  notifyListeners();
+
+  final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+
+  await favVM.loadFavorites();
+
+  if (favVM.favorites.isNotEmpty) {
+    //  Prendre la premiere ville favorite
+    final city = favVM.favorites.first;
+    currentLocation = city;
+    center = LatLng(city.cityLat, city.cityLong);
+    weatherData = await getWeather(city.cityName);
+    await loadPlaces();
+  } else {
+   
+    await goToCurrentLocation();
+  }
+
+  isLoading = false;
+  notifyListeners();
+}
+
+Future<void> goToCurrentLocation() async {
+  isLoading = true;
+  notifyListeners();
+
+  final pos = await _locationService.getCurrentPosition();
+  if (pos == null) return;
+
+  center = LatLng(pos.latitude, pos.longitude);
+
+  final city = await _nominatimService.getCityNameFromCoordinates(
+      pos.latitude, pos.longitude);
+
+  if (city != null) {
+    currentLocation = city;
+    weatherData = await getWeather(city.cityName);
+    await loadPlaces();
+  }
+
+  isLoading = false;
+  notifyListeners();
+}
 
 }

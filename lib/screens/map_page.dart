@@ -9,7 +9,6 @@ import '../providers/favorite_places_provider.dart';
 
 import '../models/weather_data.dart';
 import '../models/Lieu.dart';
-import '../models/city_location.dart';
 import '../widgets/favoriteplaces.dart';
 import '../widgets/place_details_sheet.dart';
 import 'favorites_page.dart';
@@ -32,7 +31,7 @@ class _MapPageState extends State<MapPage> {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MapProvider>(context, listen: false).init();
+      Provider.of<MapProvider>(context, listen: false).loadInitialCity(context);
     });
   }
 
@@ -94,6 +93,13 @@ class _MapPageState extends State<MapPage> {
                         );
                       },
                     ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.my_location, color: Color.fromARGB(255, 243, 33, 33)),
+                        onPressed: () {
+                      Provider.of<MapProvider>(context, listen: false).goToCurrentLocation();
+                    },
                   ),
                   Expanded(
                     child: Center(
