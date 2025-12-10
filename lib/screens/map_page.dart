@@ -7,11 +7,9 @@ import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
 import '../providers/favorite_places_provider.dart';
 
-import '../models/weather_data.dart';
 import '../models/Lieu.dart';
 import '../widgets/favoriteplaces.dart';
 import '../widgets/place_details_sheet.dart';
-import 'favorites_page.dart';
 import 'weather_card.dart';
 
 class MapPage extends StatefulWidget {
@@ -40,7 +38,9 @@ class _MapPageState extends State<MapPage> {
     final mapVM = Provider.of<MapProvider>(context);
     final favVM = Provider.of<FavoritesProvider>(context);
 	final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context);
-
+  
+final theme = Theme.of(context);
+final isDark = theme.brightness == Brightness.dark;
 	WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_lastCenter == null ||
           _lastCenter!.latitude != mapVM.center.latitude ||
@@ -50,118 +50,91 @@ class _MapPageState extends State<MapPage> {
       }
     });
 
-    return Column(
-      children: [
+    return  Container(
+  width: double.infinity,
+  color: Theme.of(context).brightness == Brightness.dark
+      ? const Color.fromARGB(255, 26, 31, 55) 
+      : const Color(0xFFE9EAEC),             
+  child: Column(
+    children: [
         // Recherche et titre ville
         Container(
-          width: double.infinity,
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            boxShadow: const [BoxShadow(blurRadius: 5, color: Colors.black26)],
-          ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-            children: [
-              TextField(
+
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark ? const Color.fromARGB(255, 101, 99, 86) : const Color.fromARGB(255, 199, 241, 253),
+                borderRadius: BorderRadius.circular(12),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                    blurRadius: 5,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: TextField(
                 controller: _cityController,
                 decoration: InputDecoration(
                   hintText: "Rechercher une ville...",
-                  border: const OutlineInputBorder(),
+                  filled: true,
+                  fillColor: isDark ? const Color.fromARGB(255, 48, 77, 85) : const Color.fromARGB(255, 192, 204, 216),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white : Colors.black54,
+                      width: 1.5,
+                    ),
+                  ),
+                  enabledBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      width: 1.2,
+                    ),
+                  ),
+                  focusedBorder: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide(
+                      color: isDark ? Colors.white : Colors.black87,
+                      width: 2,
+                    ),
+                  ),
                   suffixIcon: IconButton(
-                    icon: const Icon(Icons.search),
+                    icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
                     onPressed: () => mapVM.searchCity(_cityController.text),
                   ),
                 ),
                 onSubmitted: mapVM.searchCity,
               ),
-              const SizedBox(height: 10),
-              Row(
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        foregroundColor: Theme.of(context).colorScheme.secondary,
-                      ),
-                      icon: const Icon(Icons.list),
-                      label: const Text("Favoris"),
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (_) => const FavoritesPage()),
-                        );
-                      },
-                    ),
-                  ),
-                  IconButton(
-                    icon: const Icon(
-                      Icons.my_location, color: Color.fromARGB(255, 243, 33, 33)),
-                        onPressed: () {
-                      Provider.of<MapProvider>(context, listen: false).goToCurrentLocation();
-                    },
-                  ),
-                  Expanded(
-                    child: Center(
-                      child: Text(
-                        mapVM.currentLocation.cityName,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 30,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ),
-                  ),
-
-				  SizedBox(
-                    width: 120,
-                    child: Align(
-                      alignment: Alignment.centerRight,
-                      child: IconButton(
-                        icon: Icon(
-                          favVM.favorites.any(
-                                (c) => c.cityKey == mapVM.currentLocation.cityKey,
-                              )
-                              ? Icons.favorite
-                              : Icons.favorite_border,
-                          color: Colors.red,
-                        ),
-                        onPressed: () {
-							final city = mapVM.currentLocation;
-                          favVM.favorites.contains(city)
-                              ? favVM.removeFavorite(city)
-                              : favVM.addFavorite(city);
-                        },
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
+            ),
 
         // Carte météo
-        WeatherCard(
-          mapVM.weatherData ??
-              WeatherData(
-                temperature: 0,
-                description: "N/A",
-                humidity: 0,
-                minTemp: 0,
-                maxTemp: 0,
-                windSpeed: 0,
-                windDirection: "N/A",
-                iconCode: "01d",
-              ),
+        
+mapVM.weatherData == null
+    ? const Padding(
+        padding: EdgeInsets.all(16),
+        child: Center(
+          child: CircularProgressIndicator(),
         ),
-
+      )
+    : WeatherCard(
+        data: mapVM.weatherData!,
+        cityName: mapVM.currentLocation.cityName,
+        isFavorite: favVM.favorites.any(
+          (c) => c.cityKey == mapVM.currentLocation.cityKey,
+        ),
+        onToggleFavorite: () {
+          final city = mapVM.currentLocation;
+          favVM.favorites.any((c) => c.cityKey == city.cityKey)
+              ? favVM.removeFavorite(city)
+              : favVM.addFavorite(city);
+        },
+      ),
 		Padding(
 			padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
 			child: Wrap(
 				spacing: 8,
-				runSpacing: 8, // space between rows
+				runSpacing: 8, 
 				children: [
 				_categoryButton(context, "parks", "Parcs"),
 				_categoryButton(context, "museums", "Musées"),
@@ -171,20 +144,32 @@ class _MapPageState extends State<MapPage> {
 				_categoryButton(context, "restaurants", "Restaurants"),
 
 				TextButton(
-					onPressed: () async => await mapVM.activateAll(),
-					style: TextButton.styleFrom(
-					backgroundColor: Theme.of(context).colorScheme.primary,
-					foregroundColor: Theme.of(context).colorScheme.onPrimary,
-					),
-					child: const Text("Tout Sélectionner"),
-				),
+  onPressed: () async => await mapVM.activateAll(),
+  style: TextButton.styleFrom(
+    backgroundColor: isDark
+         ? const Color.fromARGB(255, 48, 77, 85)       
+        : const Color.fromARGB(255, 90, 118, 146),      
+    foregroundColor: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
+  child: const Text("Tout Sélectionner"),
+),
 
-				TextButton(
-					onPressed: () => mapVM.clearCategories(),
-					style: TextButton.styleFrom(
-					backgroundColor: Theme.of(context).colorScheme.primary,
-					foregroundColor: Theme.of(context).colorScheme.onPrimary,
-					),
+TextButton(
+  onPressed: () => mapVM.clearCategories(),
+  style: TextButton.styleFrom(
+    backgroundColor: isDark
+        ? const Color.fromARGB(255, 48, 77, 85)       
+        : const Color.fromARGB(255, 90, 118, 146),   
+    foregroundColor: Colors.white,
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+    shape: RoundedRectangleBorder(
+      borderRadius: BorderRadius.circular(10),
+    ),
+  ),
 					child: const Text("Tout Désélectionner"),
 				),
 				],
@@ -217,9 +202,11 @@ class _MapPageState extends State<MapPage> {
               ),
               children: [
                 TileLayer(
-                  urlTemplate: "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                  subdomains: const ['a', 'b', 'c', 'd'],
-                ),
+  urlTemplate: isDark
+      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",
+  subdomains: const ['a', 'b', 'c', 'd'],
+),
                 MarkerLayer(
                   markers: [
                     Marker(
@@ -244,11 +231,33 @@ class _MapPageState extends State<MapPage> {
                     }).whereType<Marker>(),
                   ],
                 ),
+                Positioned(
+          right: 10,
+          top: 10,
+          child: FloatingActionButton(
+            heroTag: "btnCenter",
+            mini: true,
+            backgroundColor: isDark
+                ? const Color.fromARGB(255, 48, 77, 85)
+                : const Color.fromARGB(255, 90, 118, 146),
+            onPressed: () async {
+              await mapVM.goToCurrentLocation();
+              _mapController.move(
+                LatLng(
+                  mapVM.currentLocation.cityLat,
+                  mapVM.currentLocation.cityLong,
+                ),
+                13,
+              );
+            },
+            child: const Icon(Icons.my_location, color: Colors.white),
+          ),)
               ],
             ),
           ),
         ),
-
+        
+        
         // Favoris filtrés par cityKey
         Builder(
           builder: (_) {
@@ -273,6 +282,7 @@ class _MapPageState extends State<MapPage> {
           },
         ),
       ],
+        ),
     );
   }
 }
@@ -290,16 +300,38 @@ void _openPlaceDetails(BuildContext context, Lieu lieu) {
 
 Widget _categoryButton(BuildContext context, String key, String label) {
   final mapVM = Provider.of<MapProvider>(context);
+  final theme = Theme.of(context);
+  final isDark = theme.brightness == Brightness.dark;
   final bool selected = mapVM.activeCategories.contains(key);
+
+  final Color selectedColor = isDark
+      ? const Color.fromARGB(255, 48, 77, 85)       
+        : const Color.fromARGB(255, 90, 118, 146);
 
   return Padding(
     padding: const EdgeInsets.symmetric(horizontal: 6),
     child: ChoiceChip(
-      label: Text(label),
-      labelStyle: TextStyle(color: selected ? Theme.of(context).colorScheme.onPrimary : null),
-      checkmarkColor: Theme.of(context).colorScheme.onPrimary,
-      selectedColor: Theme.of(context).colorScheme.primary,
+      label: Text(
+        label,
+        style: TextStyle(
+          color: selected
+              ? Colors.white                     
+              : (isDark ? Colors.white70 : Colors.black87),
+        ),
+      ),
       selected: selected,
+      selectedColor: selectedColor,
+      checkmarkColor: Colors.white,             
+      backgroundColor:
+          isDark ? const Color.fromARGB(255, 48, 77, 85) : Colors.white70,
+      shape: StadiumBorder(
+        side: BorderSide(
+          color: selected
+              ? const Color.fromARGB(255, 118, 121, 137)                     
+              : (isDark ? Colors.white54 : const Color.fromARGB(255, 48, 77, 85)),
+          width: 1.5,
+        ),
+      ),
       onSelected: (_) async => await mapVM.toggleCategory(key),
     ),
   );
