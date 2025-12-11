@@ -150,50 +150,44 @@ class MapProvider extends ChangeNotifier {
   	}
 
 
-    Future<void> loadInitialCity(BuildContext context) async {
-  isLoading = true;
-  notifyListeners();
+	Future<void> loadInitialCity(BuildContext context) async {
+		isLoading = true;
+		notifyListeners();
 
-  final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
 
-  await favVM.loadFavorites();
+		await favVM.loadFavorites();
 
-  if (favVM.favorites.isNotEmpty) {
-    //  Prendre la premiere ville favorite
-    final city = favVM.favorites.first;
-    currentLocation = city;
-    center = LatLng(city.cityLat, city.cityLong);
-    weatherData = await getWeather(city.cityName);
-    await loadPlaces();
-  } else {
-   
-    await goToCurrentLocation();
-  }
+		final CityLocation? city;
 
-  isLoading = false;
-  notifyListeners();
-}
+		if (favVM.favorites.isNotEmpty) {
+			//  Prendre la premiere ville favorite
+			city = favVM.favorites.first;
+		} else {
+			city = await goToCurrentLocation();
+		}
 
-Future<void> goToCurrentLocation() async {
-  isLoading = true;
-  notifyListeners();
+		if (city != null) {
+			currentLocation = city;
+			center = LatLng(currentLocation.cityLat, currentLocation.cityLong);
+			weatherData = await getWeather(currentLocation.cityName);
+			await loadPlaces();
+		}
 
-  final pos = await _locationService.getCurrentPosition();
-  if (pos == null) return;
+		isLoading = false;
+		notifyListeners();
+	}
 
-  center = LatLng(pos.latitude, pos.longitude);
+	Future<CityLocation?> goToCurrentLocation() async {
+		final pos = await _locationService.getCurrentPosition();
+		if (pos == null) return null;
 
-  final city = await _nominatimService.getCityNameFromCoordinates(
-      pos.latitude, pos.longitude);
+		center = LatLng(pos.latitude, pos.longitude);
 
-  if (city != null) {
-    currentLocation = city;
-    weatherData = await getWeather(city.cityName);
-    await loadPlaces();
-  }
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			pos.latitude, pos.longitude);
 
-  isLoading = false;
-  notifyListeners();
-}
+		return city;
+	}
 
 }

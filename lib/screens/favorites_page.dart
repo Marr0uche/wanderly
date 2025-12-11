@@ -13,7 +13,7 @@ class FavoritesPage extends StatelessWidget {
 		final mapVM = Provider.of<MapProvider>(context);
 
 		return Scaffold(
-			appBar: AppBar(title: const Text("Villes favorites")),
+			appBar: AppBar(title: const Text("Villes favoris")),
 			body: ListView.builder(
 				itemCount: favVM.favorites.length,
 				itemBuilder: (context, index) {
