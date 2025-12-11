@@ -49,7 +49,7 @@ class MapProvider extends ChangeNotifier {
 	}
 
 	// Recherche une ville par son nom
-	Future<void> searchCity(String city) async {
+	Future<void> searchCity(String city, BuildContext context) async {
 		try{
 			isLoading = true;
 			notifyListeners();
@@ -60,21 +60,29 @@ class MapProvider extends ChangeNotifier {
 				return;
 			}
 
-			city =  city[0].toUpperCase() + city.substring(1);
+			city = city[0].toUpperCase() + city.substring(1);
 
-			final result = await _nominatimService.searchCity(city);
-			//print("searchCity result: $result");
+			// On vérifie si la ville existe via les suggestions
+			final suggestions = await _nominatimService.searchCitySuggestions(city);
 
-
-			if (result == null) {
-				error = "Ville introuvable";
+			if (suggestions.isEmpty) {
+				error = "Aucun résultat trouvé";
 				isLoading = false;
 				notifyListeners();
 				return;
 			}
 
-			center = LatLng(result.cityLat, result.cityLong);
-			currentLocation = result;
+			// On prend la suggestion choisi ou la premiere
+			CityLocation? chosen;
+
+			if (suggestions.length > 1) {
+				chosen = await _openCityChoiceDialog(context, suggestions);
+			} else {
+				chosen = suggestions.first;
+			}
+
+			center = LatLng(chosen!.cityLat, chosen.cityLong);
+			currentLocation = chosen;
 			weatherData = await getWeather(currentLocation.cityName);
 			//print("getWeather result: $weatherData");
 
@@ -90,6 +98,41 @@ class MapProvider extends ChangeNotifier {
 		notifyListeners();
 	}
 
+	Future<CityLocation?> _openCityChoiceDialog(BuildContext context, List<CityLocation> options) async {
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+		return showDialog<CityLocation>(
+			context: context,
+			builder: (context) {
+				return AlertDialog(
+					title: const Text("Quelle ville vouliez-vous dire ?"),
+					content: SizedBox(
+						width: double.maxFinite,
+						child: ListView.builder(
+							shrinkWrap: true,
+							itemCount: options.length,
+							itemBuilder: (_, i) {
+								final city = options[i];
+
+								final isFav = favVM.favorites.any(
+									(c) => c.cityKey == city.cityKey,
+								);
+
+								return ListTile(
+									title: Text(city.cityName),
+									subtitle: Text("lat: ${city.cityLat}, lon: ${city.cityLong}"),
+									trailing: Icon(
+										isFav ? Icons.favorite : Icons.favorite_border,
+										color: Colors.red,
+									),
+									onTap: () => Navigator.pop(context, city),
+								);
+							},
+						),
+					),
+				);
+			},
+		);
+	}
 
 
 	Future<WeatherData?> getWeather(String city) async {

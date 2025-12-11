@@ -28,6 +28,7 @@ class FavoritePlacesScroller extends StatelessWidget {
           return GestureDetector(
             onTap: () => showModalBottomSheet(
               context: context,
+			  constraints: const BoxConstraints(maxWidth: double.infinity),
               isScrollControlled: true,
               builder: (_) => PlaceDetailsSheet(lieu: item),
             ),

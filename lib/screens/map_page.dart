@@ -75,36 +75,36 @@ class _MapPageState extends State<MapPage> {
 					child: TextField(
 						controller: _cityController,
 						decoration: InputDecoration(
-						hintText: "Rechercher une ville...",
-						filled: true,
-						fillColor: isDark ? const Color.fromARGB(255, 48, 77, 85) : const Color.fromARGB(255, 192, 204, 216),
-						border: OutlineInputBorder(
-							borderRadius: BorderRadius.circular(12),
-							borderSide: BorderSide(
-							color: isDark ? Colors.white : Colors.black54,
-							width: 1.5,
+							hintText: "Rechercher une ville...",
+							filled: true,
+							fillColor: isDark ? const Color.fromARGB(255, 48, 77, 85) : const Color.fromARGB(255, 192, 204, 216),
+							border: OutlineInputBorder(
+								borderRadius: BorderRadius.circular(12),
+								borderSide: BorderSide(
+								color: isDark ? Colors.white : Colors.black54,
+								width: 1.5,
+								),
+							),
+							enabledBorder: OutlineInputBorder(
+								borderRadius: BorderRadius.circular(12),
+								borderSide: BorderSide(
+								color: isDark ? Colors.white70 : Colors.black54,
+								width: 1.2,
+								),
+							),
+							focusedBorder: OutlineInputBorder(
+								borderRadius: BorderRadius.circular(12),
+								borderSide: BorderSide(
+								color: isDark ? Colors.white : Colors.black87,
+								width: 2,
+								),
+							),
+							suffixIcon: IconButton(
+								icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
+								onPressed: () => mapVM.searchCity(_cityController.text, context),
 							),
 						),
-						enabledBorder: OutlineInputBorder(
-							borderRadius: BorderRadius.circular(12),
-							borderSide: BorderSide(
-							color: isDark ? Colors.white70 : Colors.black54,
-							width: 1.2,
-							),
-						),
-						focusedBorder: OutlineInputBorder(
-							borderRadius: BorderRadius.circular(12),
-							borderSide: BorderSide(
-							color: isDark ? Colors.white : Colors.black87,
-							width: 2,
-							),
-						),
-						suffixIcon: IconButton(
-							icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
-							onPressed: () => mapVM.searchCity(_cityController.text),
-						),
-						),
-						onSubmitted: mapVM.searchCity,
+						onSubmitted: (value) => mapVM.searchCity(value, context),
 					),
 				),
 
@@ -245,13 +245,13 @@ class _MapPageState extends State<MapPage> {
 							height: 40,
 							point: LatLng(p.latitude, p.longitude),
 							child: GestureDetector(
-							onTap: () => _openPlaceDetails(context, p),
+								onTap: () => _openPlaceDetails(context, p),
 
-							child: const Icon(
-								Icons.push_pin,
-								size: 40,
-								color: Colors.deepPurpleAccent,
-							),
+								child: const Icon(
+									Icons.push_pin,
+									size: 40,
+									color: Colors.deepPurpleAccent,
+								),
 							),
 						);
 					}),

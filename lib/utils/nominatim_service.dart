@@ -24,24 +24,30 @@ class NominatimService {
 		);
   }
 
-  Future<List<String>> getSuggestions(String city) async {
-    if (city.length < 2) return [];
+  Future<List<CityLocation>> searchCitySuggestions(String query) async {
+		final url = "https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1&extratags=1&polygon_geojson=0&limit=10";
 
-    final url = Uri.parse(
-      "https://nominatim.openstreetmap.org/search?q=$city&format=json&limit=5",
-    );
+		final response = await http.get(
+			Uri.parse(url),
+			headers: {"User-Agent": "wanderly/1.0"},
+		);
 
-    final response = await http.get(
-      url,
-      headers: {'User-Agent': 'wanderly/1.0'},
-    );
+		if (response.statusCode != 200) return [];
 
-    if (response.statusCode != 200) return [];
+		final List data = jsonDecode(response.body);
 
-    final List data = jsonDecode(response.body);
+		return data.map((json) {
+			return CityLocation(
+				osmId: json["osm_id"],
+				osmType: json["osm_type"],
+				cityName: json["display_name"],
+				cityLat: double.parse(json["lat"]),
+				cityLong: double.parse(json["lon"]),
+				cityKey: CityLocation.createKey(json["osm_id"], json["osm_type"]),
+			);
+		}).toList();
+	}
 
-    return data.map((e) => e["display_name"] as String).toList();
-  }
 
 	Future<CityLocation?> getCityNameFromCoordinates(double lat, double lon) async {
 		final url = Uri.parse(
