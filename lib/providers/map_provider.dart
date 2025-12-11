@@ -22,6 +22,8 @@ class MapProvider extends ChangeNotifier {
 	final OverpassService _overpass = OverpassService();
 	List<Lieu> lieux = [];
 	Set<String> activeCategories = {"tourism", "restaurants"};
+
+	bool addingCustomLocation = false;
 	
 	bool isLoading = false;
 
@@ -61,7 +63,7 @@ class MapProvider extends ChangeNotifier {
 			city =  city[0].toUpperCase() + city.substring(1);
 
 			final result = await _nominatimService.searchCity(city);
-			print("searchCity result: $result");
+			//print("searchCity result: $result");
 
 
 			if (result == null) {
@@ -74,11 +76,10 @@ class MapProvider extends ChangeNotifier {
 			center = LatLng(result.cityLat, result.cityLong);
 			currentLocation = result;
 			weatherData = await getWeather(currentLocation.cityName);
-			print("getWeather result: $weatherData");
+			//print("getWeather result: $weatherData");
 
 			await loadPlaces();
-			print("loadPlaces done");
-
+			//print("loadPlaces done");
 
 
 		} catch (e) {
@@ -189,5 +190,41 @@ class MapProvider extends ChangeNotifier {
 
 		return city;
 	}
+
+
+	void startAddingCustomLocation() {
+		addingCustomLocation = true;
+		notifyListeners();
+	}
+
+	void stopAddingCustomLocation() {
+		addingCustomLocation = false;
+		notifyListeners();
+	}
+
+	Future<Lieu?> addCustomLocation(String name, LatLng latlng) async {
+		// On récupère la ville pour générer une cityKey
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			latlng.latitude,
+			latlng.longitude,
+		);
+
+		if (city == null) return null;
+
+		String cityKey = currentLocation.cityKey;
+
+		final customLieu = Lieu(
+			id: DateTime.now().millisecondsSinceEpoch,
+			name: name,
+			latitude: latlng.latitude,
+			longitude: latlng.longitude,
+			isCustom: true,
+			tags: {},
+			cityKey: cityKey,
+		);
+
+		return customLieu;
+	}
+
 
 }

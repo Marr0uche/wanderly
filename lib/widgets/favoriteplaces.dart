@@ -75,6 +75,38 @@ class FavoritePlacesScroller extends StatelessWidget {
                       style: const TextStyle(fontWeight: FontWeight.bold),
                     ),
                   ),
+
+				  //Ajouter rating et note
+				  if (item.rating != null)
+					Row(
+					  mainAxisAlignment: MainAxisAlignment.center,
+					  children: [
+						for (int i = 0; i < item.rating!.floor(); i++)
+						  const Icon(
+							Icons.star,
+							color: Colors.amber,
+							size: 16,
+						  ),
+					  ],
+					),
+
+					if (item.note != null && item.note!.isNotEmpty)
+						Padding(
+							padding: const EdgeInsets.symmetric(
+								horizontal: 8.0,
+								vertical: 4,
+							),
+							child: Text(
+								"\"${item.note}\"",
+								maxLines: 1,
+								overflow: TextOverflow.ellipsis, 
+								textAlign: TextAlign.center,
+								style: const TextStyle(
+									fontStyle: FontStyle.italic,
+									fontSize: 12,
+								),
+							),
+						),
                 ],
               ),
             ),

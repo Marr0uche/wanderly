@@ -10,6 +10,8 @@ class Lieu {
 	final Map<String, dynamic> tags;
 	final String cityKey;
 
+	final bool isCustom;
+
 	final double? rating; 
   	final String? note; 
 
@@ -20,6 +22,7 @@ class Lieu {
 		required this.longitude,
 		required this.tags,
 		required this.cityKey,
+		this.isCustom = false,
 		this.rating,
 		this.note,
 	});
@@ -43,6 +46,7 @@ class Lieu {
 			cityKey: map['cityKey'],
 			rating: map['rating'],
       		note: map['note'],
+			isCustom: map['isCustom'] == 1,
 		);
 	}
 
@@ -69,6 +73,7 @@ class Lieu {
 			'cityKey': cityKey,
 			'rating': rating,
       		'note': note,
+			'isCustom': isCustom ? 1 : 0,
 		};
 	}
 
@@ -80,6 +85,9 @@ class Lieu {
 			longitude: longitude,
 			tags: tags,
 			cityKey: cityKey,
+			isCustom: isCustom,
+			rating: rating,
+			note: note,
 		);
 	}
 
@@ -93,11 +101,12 @@ class Lieu {
 			cityKey: cityKey,
 			rating: rating ?? this.rating,
 			note: note ?? this.note,
+			isCustom: isCustom,
 		);
   	}
 
 	@override
 	String toString() {
-		return '$name{id: $id,\n latitude: $latitude,\n longitude: $longitude,\n tags: $tags,\n cityKey: $cityKey}\n\n';
+		return '$name{id: $id,\n latitude: $latitude,\n longitude: $longitude,\n tags: $tags,\n cityKey: $cityKey,\n isCustom: $isCustom,\n rating: $rating,\n note: $note}\n\n';
 	}
 }
