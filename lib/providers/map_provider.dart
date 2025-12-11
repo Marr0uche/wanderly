@@ -22,6 +22,8 @@ class MapProvider extends ChangeNotifier {
 	final OverpassService _overpass = OverpassService();
 	List<Lieu> lieux = [];
 	Set<String> activeCategories = {"tourism", "restaurants"};
+
+	bool addingCustomLocation = false;
 	
 	bool isLoading = false;
 
@@ -47,7 +49,7 @@ class MapProvider extends ChangeNotifier {
 	}
 
 	// Recherche une ville par son nom
-	Future<void> searchCity(String city) async {
+	Future<void> searchCity(String city, BuildContext context) async {
 		try{
 			isLoading = true;
 			notifyListeners();
@@ -58,27 +60,34 @@ class MapProvider extends ChangeNotifier {
 				return;
 			}
 
-			city =  city[0].toUpperCase() + city.substring(1);
+			city = city[0].toUpperCase() + city.substring(1);
 
-			final result = await _nominatimService.searchCity(city);
-			print("searchCity result: $result");
+			// On vérifie si la ville existe via les suggestions
+			final suggestions = await _nominatimService.searchCitySuggestions(city);
 
-
-			if (result == null) {
-				error = "Ville introuvable";
+			if (suggestions.isEmpty) {
+				error = "Aucun résultat trouvé";
 				isLoading = false;
 				notifyListeners();
 				return;
 			}
 
-			center = LatLng(result.cityLat, result.cityLong);
-			currentLocation = result;
+			// On prend la suggestion choisi ou la premiere
+			CityLocation? chosen;
+
+			if (suggestions.length > 1) {
+				chosen = await _openCityChoiceDialog(context, suggestions);
+			} else {
+				chosen = suggestions.first;
+			}
+
+			center = LatLng(chosen!.cityLat, chosen.cityLong);
+			currentLocation = chosen;
 			weatherData = await getWeather(currentLocation.cityName);
-			print("getWeather result: $weatherData");
+			//print("getWeather result: $weatherData");
 
 			await loadPlaces();
-			print("loadPlaces done");
-
+			//print("loadPlaces done");
 
 
 		} catch (e) {
@@ -89,6 +98,41 @@ class MapProvider extends ChangeNotifier {
 		notifyListeners();
 	}
 
+	Future<CityLocation?> _openCityChoiceDialog(BuildContext context, List<CityLocation> options) async {
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+		return showDialog<CityLocation>(
+			context: context,
+			builder: (context) {
+				return AlertDialog(
+					title: const Text("Quelle ville vouliez-vous dire ?"),
+					content: SizedBox(
+						width: double.maxFinite,
+						child: ListView.builder(
+							shrinkWrap: true,
+							itemCount: options.length,
+							itemBuilder: (_, i) {
+								final city = options[i];
+
+								final isFav = favVM.favorites.any(
+									(c) => c.cityKey == city.cityKey,
+								);
+
+								return ListTile(
+									title: Text(city.cityName),
+									subtitle: Text("lat: ${city.cityLat}, lon: ${city.cityLong}"),
+									trailing: Icon(
+										isFav ? Icons.favorite : Icons.favorite_border,
+										color: Colors.red,
+									),
+									onTap: () => Navigator.pop(context, city),
+								);
+							},
+						),
+					),
+				);
+			},
+		);
+	}
 
 
 	Future<WeatherData?> getWeather(String city) async {
@@ -150,50 +194,80 @@ class MapProvider extends ChangeNotifier {
   	}
 
 
-    Future<void> loadInitialCity(BuildContext context) async {
-  isLoading = true;
-  notifyListeners();
+	Future<void> loadInitialCity(BuildContext context) async {
+		isLoading = true;
+		notifyListeners();
 
-  final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
 
-  await favVM.loadFavorites();
+		await favVM.loadFavorites();
 
-  if (favVM.favorites.isNotEmpty) {
-    //  Prendre la premiere ville favorite
-    final city = favVM.favorites.first;
-    currentLocation = city;
-    center = LatLng(city.cityLat, city.cityLong);
-    weatherData = await getWeather(city.cityName);
-    await loadPlaces();
-  } else {
-   
-    await goToCurrentLocation();
-  }
+		final CityLocation? city;
 
-  isLoading = false;
-  notifyListeners();
-}
+		if (favVM.favorites.isNotEmpty) {
+			//  Prendre la premiere ville favorite
+			city = favVM.favorites.first;
+		} else {
+			city = await goToCurrentLocation();
+		}
 
-Future<void> goToCurrentLocation() async {
-  isLoading = true;
-  notifyListeners();
+		if (city != null) {
+			currentLocation = city;
+			center = LatLng(currentLocation.cityLat, currentLocation.cityLong);
+			weatherData = await getWeather(currentLocation.cityName);
+			await loadPlaces();
+		}
 
-  final pos = await _locationService.getCurrentPosition();
-  if (pos == null) return;
+		isLoading = false;
+		notifyListeners();
+	}
 
-  center = LatLng(pos.latitude, pos.longitude);
+	Future<CityLocation?> goToCurrentLocation() async {
+		final pos = await _locationService.getCurrentPosition();
+		if (pos == null) return null;
 
-  final city = await _nominatimService.getCityNameFromCoordinates(
-      pos.latitude, pos.longitude);
+		center = LatLng(pos.latitude, pos.longitude);
 
-  if (city != null) {
-    currentLocation = city;
-    weatherData = await getWeather(city.cityName);
-    await loadPlaces();
-  }
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			pos.latitude, pos.longitude);
 
-  isLoading = false;
-  notifyListeners();
-}
+		return city;
+	}
+
+
+	void startAddingCustomLocation() {
+		addingCustomLocation = true;
+		notifyListeners();
+	}
+
+	void stopAddingCustomLocation() {
+		addingCustomLocation = false;
+		notifyListeners();
+	}
+
+	Future<Lieu?> addCustomLocation(String name, LatLng latlng) async {
+		// On récupère la ville pour générer une cityKey
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			latlng.latitude,
+			latlng.longitude,
+		);
+
+		if (city == null) return null;
+
+		String cityKey = currentLocation.cityKey;
+
+		final customLieu = Lieu(
+			id: DateTime.now().millisecondsSinceEpoch,
+			name: name,
+			latitude: latlng.latitude,
+			longitude: latlng.longitude,
+			isCustom: true,
+			tags: {},
+			cityKey: cityKey,
+		);
+
+		return customLieu;
+	}
+
 
 }

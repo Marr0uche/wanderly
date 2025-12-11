@@ -20,8 +20,15 @@ class Dbhelper {
 
     return await openDatabase(
       path,
-      version: 1,
+      version: 3,
       onCreate: _onCreate,
+	  onUpgrade: (db, oldVersion, newVersion) async {
+        if (oldVersion < 2) {
+          await db.execute(
+            'ALTER TABLE FavoritePlaces ADD COLUMN isCustom INTEGER NOT NULL DEFAULT 0',
+          );
+        }
+      },
     );
   }
 
@@ -48,7 +55,8 @@ class Dbhelper {
         lon REAL NOT NULL,
         tags TEXT,
 		rating REAL,    
-  		note TEXT     
+  		note TEXT,
+		isCustom INTEGER NOT NULL DEFAULT 0
       )
     ''');
   }

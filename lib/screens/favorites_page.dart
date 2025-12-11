@@ -13,14 +13,14 @@ class FavoritesPage extends StatelessWidget {
 		final mapVM = Provider.of<MapProvider>(context);
 
 		return Scaffold(
-			appBar: AppBar(title: const Text("Villes favorites")),
+			appBar: AppBar(title: const Text("Villes favoris")),
 			body: ListView.builder(
 				itemCount: favVM.favorites.length,
 				itemBuilder: (context, index) {
 					final city = favVM.favorites[index];
 					return ListTile(
 						onTap: () {
-							mapVM.searchCity(city.cityName);
+							mapVM.searchCity(city.cityName, context);
 							Navigator.pop(context, city);
 						},
 						title: Text(city.cityName),

@@ -245,7 +245,7 @@ void _openNotePopup(
                       ),
                       onPressed: () {
                         setState(() {
-                          rating = (i + 1).toDouble(); // 🔥 THIS NOW UPDATES UI
+                          rating = (i + 1).toDouble();
                         });
                       },
                     );
