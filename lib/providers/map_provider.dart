@@ -223,46 +223,46 @@ class MapProvider extends ChangeNotifier {
 	}
 
 	
-  Future<CityLocation?> goToCurrentLocation() async {
-  isLoading = true;
-  notifyListeners();
+	Future<CityLocation?> goToCurrentLocation() async {
+		isLoading = true;
+		notifyListeners();
 
-  final pos = await _locationService.getCurrentPosition();
-  if (pos == null) {
-    isLoading = false;
-    notifyListeners();
-    return null;
-  }
-  center = LatLng(pos.latitude, pos.longitude);
-  final city = await _nominatimService.getCityNameFromCoordinates(
-    pos.latitude,
-    pos.longitude,
-  );
+		final pos = await _locationService.getCurrentPosition();
+		if (pos == null) {
+			isLoading = false;
+			notifyListeners();
+			return null;
+		}
+		center = LatLng(pos.latitude, pos.longitude);
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			pos.latitude,
+			pos.longitude,
+		);
 
-  CityLocation finalCity;
+		CityLocation finalCity;
 
-  if (city != null) {
-    finalCity = city;
-  } else {
-    finalCity = CityLocation(
-      osmId: -1,
-      osmType: "R",
-      cityKey: "R-1",
-      cityName: "Ma position",
-      cityLat: pos.latitude,
-      cityLong: pos.longitude,
-    );
-  }
+		if (city != null) {
+			finalCity = city;
+		} else {
+			finalCity = CityLocation(
+			osmId: -1,
+			osmType: "R",
+			cityKey: "R-1",
+			cityName: "Ma position",
+			cityLat: pos.latitude,
+			cityLong: pos.longitude,
+			);
+		}
 
-  currentLocation = finalCity;
-  weatherData = await getWeather(finalCity.cityName);
-  await loadPlaces();
+		currentLocation = finalCity;
+		weatherData = await getWeather(finalCity.cityName);
+		await loadPlaces();
 
-  isLoading = false;
-  notifyListeners();
+		isLoading = false;
+		notifyListeners();
 
-  return finalCity;
-}
+		return finalCity;
+	}
 
 
 	void startAddingCustomLocation() {
