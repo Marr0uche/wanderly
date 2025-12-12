@@ -48,6 +48,21 @@ class MapProvider extends ChangeNotifier {
 		notifyListeners();
 	}
 
+	//Va à une ville spécifique sans recherche
+	Future<void> goToCity(CityLocation city) async {
+		isLoading = true;
+		notifyListeners();
+
+		currentLocation = city;
+		center = LatLng(city.cityLat, city.cityLong);
+		weatherData = await getWeather(city.cityName);
+		await loadPlaces();
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+
 	// Recherche une ville par son nom
 	Future<void> searchCity(String city, BuildContext context) async {
 		try{

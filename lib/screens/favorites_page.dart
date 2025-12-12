@@ -20,7 +20,7 @@ class FavoritesPage extends StatelessWidget {
 					final city = favVM.favorites[index];
 					return ListTile(
 						onTap: () {
-							mapVM.searchCity(city.cityName, context);
+							mapVM.goToCity(city);
 							Navigator.pop(context, city);
 						},
 						title: Text(city.cityName),
