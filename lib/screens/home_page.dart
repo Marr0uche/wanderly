@@ -62,7 +62,7 @@ class HomePage extends StatelessWidget {
      
       appBar: AppBar(
         automaticallyImplyLeading: true, // affiche l'icône du menu
-        title: const Text("Wanderly"),
+        title: const Text("Explorer votre ville"),
       ),
 
       // ------------------------------------------------------------------

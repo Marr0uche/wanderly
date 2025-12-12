@@ -222,17 +222,47 @@ class MapProvider extends ChangeNotifier {
 		notifyListeners();
 	}
 
-	Future<CityLocation?> goToCurrentLocation() async {
-		final pos = await _locationService.getCurrentPosition();
-		if (pos == null) return null;
+	
+  Future<CityLocation?> goToCurrentLocation() async {
+  isLoading = true;
+  notifyListeners();
 
-		center = LatLng(pos.latitude, pos.longitude);
+  final pos = await _locationService.getCurrentPosition();
+  if (pos == null) {
+    isLoading = false;
+    notifyListeners();
+    return null;
+  }
+  center = LatLng(pos.latitude, pos.longitude);
+  final city = await _nominatimService.getCityNameFromCoordinates(
+    pos.latitude,
+    pos.longitude,
+  );
 
-		final city = await _nominatimService.getCityNameFromCoordinates(
-			pos.latitude, pos.longitude);
+  CityLocation finalCity;
 
-		return city;
-	}
+  if (city != null) {
+    finalCity = city;
+  } else {
+    finalCity = CityLocation(
+      osmId: -1,
+      osmType: "R",
+      cityKey: "R-1",
+      cityName: "Ma position",
+      cityLat: pos.latitude,
+      cityLong: pos.longitude,
+    );
+  }
+
+  currentLocation = finalCity;
+  weatherData = await getWeather(finalCity.cityName);
+  await loadPlaces();
+
+  isLoading = false;
+  notifyListeners();
+
+  return finalCity;
+}
 
 
 	void startAddingCustomLocation() {

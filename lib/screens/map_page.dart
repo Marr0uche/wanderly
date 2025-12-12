@@ -393,7 +393,7 @@ Widget _categoryButton(BuildContext context, String key, String label) {
   final bool selected = mapVM.activeCategories.contains(key);
 
   final Color selectedColor = isDark
-      ? const Color.fromARGB(255, 48, 77, 85)       
+      ? const Color.fromARGB(255, 88, 138, 152)       
         : const Color.fromARGB(255, 90, 118, 146);
 
   return Padding(
@@ -416,7 +416,7 @@ Widget _categoryButton(BuildContext context, String key, String label) {
         side: BorderSide(
           color: selected
               ? const Color.fromARGB(255, 118, 121, 137)                     
-              : (isDark ? Colors.white54 : const Color.fromARGB(255, 48, 77, 85)),
+              : (isDark ? const Color.fromARGB(137, 113, 138, 155) : const Color.fromARGB(255, 48, 77, 85)),
           width: 1.5,
         ),
       ),
