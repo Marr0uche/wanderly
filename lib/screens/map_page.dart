@@ -10,7 +10,7 @@ import '../widgets/search_city.dart';
 import '../widgets/category_button.dart';
 import '../widgets/map_widget.dart';
 import '../widgets/weather_card.dart';
-import '../widgets/favoriteplaces.dart'; 
+import '../widgets/FavoritePlaces/favoriteplaces.dart'; 
 import '../utils/map_dialogs.dart'; 
 
 class MapPage extends StatefulWidget {

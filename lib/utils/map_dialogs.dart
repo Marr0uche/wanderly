@@ -5,7 +5,7 @@ import 'package:latlong2/latlong.dart';
 import '../models/Lieu.dart';
 import '../providers/map_provider.dart';
 import '../providers/favorite_places_provider.dart';
-import '../widgets/place_details_sheet.dart'; 
+import '../widgets/PlaceDetails/place_details_sheet.dart'; 
 
 
 void enterCustomLocationMode(BuildContext context) {

@@ -49,8 +49,8 @@ void main() async {
 
 						// Load only if the city changed
 						if (favPlacesVM.lastLoadedCityKey != newCityKey) {
-						favPlacesVM.loadFavoritePlaces(newCityKey);
-						favPlacesVM.lastLoadedCityKey = newCityKey;
+							favPlacesVM.loadFavoritePlaces(newCityKey);
+							favPlacesVM.lastLoadedCityKey = newCityKey;
 						}
 
 						return favPlacesVM;

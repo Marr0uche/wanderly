@@ -70,12 +70,11 @@ class HomePage extends StatelessWidget {
       // ------------------------------------------------------------------
       body: Stack(
         children: [
-          // Le contenu scrollable (carte + autres sections plus tard)
+          // Le contenu scrollable (carte + autres sections)
           SingleChildScrollView(
             child: Column(
               children: const [
                 MapPage(),
-                Divider(),
               ],
             ),
           ),
