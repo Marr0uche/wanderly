@@ -276,6 +276,9 @@ class MapProvider extends ChangeNotifier {
 	}
 
 	Future<Lieu?> addCustomLocation(String name, LatLng latlng) async {
+		isLoading = true;
+		notifyListeners();
+
 		// On récupère la ville pour générer une cityKey
 		final city = await _nominatimService.getCityNameFromCoordinates(
 			latlng.latitude,
@@ -295,6 +298,9 @@ class MapProvider extends ChangeNotifier {
 			tags: {},
 			cityKey: cityKey,
 		);
+
+		isLoading = false;
+		notifyListeners();
 
 		return customLieu;
 	}
