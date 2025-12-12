@@ -49,7 +49,7 @@ class MapProvider extends ChangeNotifier {
 	}
 
 	//Va à une ville spécifique sans recherche
-	Future<void> goToCity(CityLocation city) async {
+	Future<void> selectCity(CityLocation city) async {
 		isLoading = true;
 		notifyListeners();
 

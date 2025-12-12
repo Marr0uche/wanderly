@@ -101,7 +101,7 @@ class MapWidget extends StatelessWidget {
                     child: GestureDetector(
                       onTap: () => onOpenPlaceDetails(p),
                       child: const Icon(
-                        Icons.push_pin,
+                        Icons.location_on,
                         size: 40,
                         color: Colors.deepPurpleAccent,
                       ),
