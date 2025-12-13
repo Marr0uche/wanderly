@@ -9,6 +9,7 @@ import '../models/Lieu.dart';
 import '../utils/overpass_service.dart';
 import 'package:provider/provider.dart';
 import 'favorites_provider.dart';
+import 'favorite_places_provider.dart';
 
 class MapProvider extends ChangeNotifier {
 	final LocationService _locationService = LocationService();
@@ -47,6 +48,21 @@ class MapProvider extends ChangeNotifier {
 		isLoading = false;
 		notifyListeners();
 	}
+
+	//Va à une ville spécifique sans recherche
+	Future<void> selectCity(CityLocation city) async {
+		isLoading = true;
+		notifyListeners();
+
+		currentLocation = city;
+		center = LatLng(city.cityLat, city.cityLong);
+		weatherData = await getWeather(city.cityName);
+		await loadPlaces();
+
+		isLoading = false;
+		notifyListeners();
+	}
+
 
 	// Recherche une ville par son nom
 	Future<void> searchCity(String city, BuildContext context) async {
@@ -305,5 +321,63 @@ class MapProvider extends ChangeNotifier {
 		return customLieu;
 	}
 
+
+	Future<void> searchLocation(String query, BuildContext context) async {
+		isLoading = true;
+		notifyListeners();
+
+		final results = await _nominatimService.searchPlaces(query, lat: currentLocation.cityLat, lon: currentLocation.cityLong);
+
+		if (results.isEmpty) {
+			isLoading = false;
+			notifyListeners();
+			return;
+		}
+
+		final chosen = await _openPlaceChoiceDialog(context, results);
+		if (chosen == null) {
+			isLoading = false;
+			notifyListeners();
+			return;
+		}
+
+		center = LatLng(chosen.latitude, chosen.longitude);
+		final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context, listen: false);
+		favoritePlacesVM.addFavoritePlace(chosen);
+
+		ScaffoldMessenger.of(
+		context,
+		).showSnackBar(const SnackBar(content: Text("Lieu ajouté !")));
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+	Future<Lieu?> _openPlaceChoiceDialog( BuildContext context, List<Map<String, dynamic>> results) {
+		return showDialog<Lieu>(
+			context: context,
+			builder: (_) {
+				return AlertDialog(
+					title: const Text("Choisir un lieu"),
+					content: SizedBox(
+						width: double.maxFinite,
+						child: ListView.builder(
+							itemCount: results.length,
+							itemBuilder: (_, i) {
+								final r = results[i];
+								return ListTile(
+									title: Text(r['display_name']),
+									onTap: () {
+										final lieu = Lieu.fromNominatim(r, currentLocation.cityKey);
+										Navigator.pop(context, lieu);
+									},
+								);
+							},
+						),
+					),
+				);
+			},
+		);
+  }
 
 }

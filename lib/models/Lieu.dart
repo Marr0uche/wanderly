@@ -63,6 +63,25 @@ class Lieu {
 		);
 	}
 
+	factory Lieu.fromNominatim(Map<String, dynamic> json, String cityKey) {
+		final Map<String, dynamic> tags = {"addr:street": json['address']?['road'],
+										"addr:housenumber": json['address']?['house_number'],
+										"contact:website": json['extratags']?['website'],
+										"contact:phone": json['extratags']?['phone'],
+										"contact:email": json['extratags']?['email'],
+										"contact:facebook": json['extratags']?['facebook'],
+									  };
+		return Lieu(
+			id: json['place_id'],
+			name: json['name'],
+			latitude: double.parse(json['lat']),
+			longitude: double.parse(json['lon']),
+			tags: tags,
+			isCustom: true,
+			cityKey: cityKey,
+		);
+	}
+
 	Map<String, dynamic> toMap() {
 		return {
 			'id': id,
