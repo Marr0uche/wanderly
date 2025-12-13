@@ -69,4 +69,25 @@ class NominatimService {
 
 		return await searchCity(name);
 	}
+
+
+	Future<List<Map<String, dynamic>>> searchPlaces(String query, {required double lat, required double lon}) async {
+		const double delta = 0.1; // ≈ 10km
+
+		final viewbox = '${lon - delta},${lat + delta},${lon + delta},${lat - delta}';
+
+		final uri = Uri.parse(
+			'https://nominatim.openstreetmap.org/search?q=$query&format=json&addressdetails=1&limit=10&lat=$lat&lon=$lon&viewbox=$viewbox&bounded=1',
+		);
+
+		final response = await http.get(
+			uri,
+			headers: {'User-Agent': 'wanderly-app'},
+		);
+
+		if (response.statusCode != 200) return [];
+
+		return List<Map<String, dynamic>>.from(jsonDecode(response.body));
+	}
+
 }

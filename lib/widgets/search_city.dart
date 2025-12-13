@@ -52,7 +52,7 @@ class CitySearchField extends StatelessWidget {
               width: 2,
             ),
           ),
-          suffixIcon: IconButton(
+          prefixIcon: IconButton(
             icon: Icon(Icons.search, color: isDark ? Colors.white : Colors.black87),
             onPressed: () => mapVM.searchCity(controller.text, context),
           ),
