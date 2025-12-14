@@ -104,7 +104,25 @@ class _MapPageState extends State<MapPage> {
                     .toList();
 
                 return favoritesInCity.isNotEmpty
-                    ? FavoritePlacesScroller(items: favoritesInCity) 
+                    ? Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              "Lieux favoris dans cette ville",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          FavoritePlacesScroller(items: favoritesInCity),
+                        ],
+                      )
                     : Container(
                         width: double.infinity,
                         padding: const EdgeInsets.all(20),

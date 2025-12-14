@@ -40,6 +40,7 @@ lib/
 │ ├── nominatim_service.dart
 │ ├── overpass_service.dart
 │ ├── weather_service.dart
+│ ├── place_details.dart
 │ └── map_dialogs.dart
 │
 ├── widgets/
@@ -56,6 +57,10 @@ lib/
 │     ├── place_details_header.dart
 │     ├── place_details_info.dart
 │     ├── place_details_sheet.dart
+│     ├── place_details_additional_info_card.dart
+│     ├── place_details_contact_card.dart
+│     ├── place_details_image_card.dart
+│     ├── place_details_user_review_card.dart
 │     └── place_note_dialog.dart
 │
 │ ├── category_button.dart
