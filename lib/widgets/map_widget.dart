@@ -74,7 +74,7 @@ class MapWidget extends StatelessWidget {
 							width: 40,
 							height: 40,
 							point: LatLng(mapVM.currentLocation.cityLat, mapVM.currentLocation.cityLong),
-							child: const Icon(Icons.my_location, color: Colors.red, size: 40),
+							child: const Icon(Icons.my_location, color: Colors.black, size: 40),
 							),
 							// Marqueurs des lieux d'intérêt (non-custom)
 							...mapVM.lieux.map((p) {
@@ -112,17 +112,33 @@ class MapWidget extends StatelessWidget {
 						],
 					),
 
-					// Bouton de recentrage
+					// Boutons overlay 
 					Positioned(
 						top: 12,
 						left: 12,
-						right: 70,
+						right: 120,
 						child: MapSearchBar(),
+					),
+					//  Bouton d'ajout de lieu personnalisé
+					Positioned(
+						right : 60,
+						top: 12,
+						child: FloatingActionButton(
+							onPressed: () => enterCustomLocationMode(context),
+							tooltip: "Ajouter un lieu personnalisé",
+							heroTag: "btnAddCustomLocation",
+							backgroundColor: isDark
+								? const Color.fromARGB(255, 48, 77, 85)
+								: const Color.fromARGB(255, 90, 118, 146),
+							mini: true,
+							child: const Icon(Icons.add_location_alt, color: Colors.white),
+						),
 					),
 					Positioned(
 						right: 10,
-						top: 10,
+						top: 12,
 						child: FloatingActionButton(
+							tooltip: "Centrer sur ma position",
 							heroTag: "btnCenter",
 							mini: true,
 							backgroundColor: isDark

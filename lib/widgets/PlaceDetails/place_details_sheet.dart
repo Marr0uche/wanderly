@@ -14,7 +14,7 @@ class PlaceDetailsSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Consumer<FavoritesProviderPlace>(
-      builder: (_, favVM, __) {
+      builder: (_, favVM, _) {
         final updatedLieu = favVM.favoritePlaces.firstWhere(
           (p) => p.id == lieu.id,
           orElse: () => lieu,
@@ -22,9 +22,11 @@ class PlaceDetailsSheet extends StatelessWidget {
 
         return DraggableScrollableSheet(
           expand: false,
-          initialChildSize: 0.35,
+          initialChildSize: updatedLieu.tags["image"] != null ? 0.55 : 0.35,
           minChildSize: 0.25,
           maxChildSize: 0.95,
+		  snap: true,
+          snapSizes: const [0.35, 0.55, 0.95],
           builder: (_, scrollController) {
             return SingleChildScrollView(
               controller: scrollController,

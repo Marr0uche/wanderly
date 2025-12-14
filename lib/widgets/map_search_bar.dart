@@ -21,7 +21,7 @@ class MapSearchBar extends StatelessWidget {
           hintText: "Rechercher un lieu…",
 		  isDense: true,
 		  contentPadding: const EdgeInsets.symmetric(vertical: 12),
-          constraints: const BoxConstraints(maxHeight: 37),
+          constraints: const BoxConstraints(maxHeight: 40),
           filled: true,
           fillColor: isDark
               ? const Color.fromARGB(255, 48, 77, 85)

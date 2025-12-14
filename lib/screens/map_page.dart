@@ -118,16 +118,7 @@ class _MapPageState extends State<MapPage> {
               },
             ),
             
-            const SizedBox(height: 20),
-            
-            //  Bouton d'ajout de lieu personnalisé
-            ElevatedButton.icon(
-              onPressed: () => enterCustomLocationMode(context),
-              icon: const Icon(Icons.add_location_alt),
-              label: const Text("Ajouter un lieu personnalisé"),
-            ),
-            
-            const SizedBox(height: 20),
+			const SizedBox(height: 20),
           ],
         ),
       ),
