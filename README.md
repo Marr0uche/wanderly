@@ -42,27 +42,27 @@ lib/
 │ ├── weather_service.dart
 │ └── map_dialogs.dart
 │
-└── widgets/
-├── FavoriteCities/
-│ ├── delete_confirmation_modal.dart
-│ ├── favorite_city_card.dart
-│ └── empty_cities_page.dart
+├── widgets/
+│ └── FavoriteCities/
+│     ├── delete_confirmation_modal.dart
+│     ├── favorite_city_card.dart
+│     └── empty_cities_page.dart
 │
-├── favoritePlaces/
-│ ├── favorite_place_card.dart
-│ └── favoriteplaces.dart
+│ └── favoritePlaces/
+│     ├── favorite_place_card.dart
+│     └── favoriteplaces.dart
 │
-├── PlaceDetails/
-│ ├── place_details_header.dart
-│ ├── place_details_info.dart
-│ ├── place_details_sheet.dart
-│ └── place_note_dialog.dart
+│ └── PlaceDetails/
+│     ├── place_details_header.dart
+│     ├── place_details_info.dart
+│     ├── place_details_sheet.dart
+│     └── place_note_dialog.dart
 │
-├── category_button.dart
-├── map_search_bar.dart
-├── map_widget.dart
-├── search_city.dart
-└── weather_card.dart
+│ ├── category_button.dart
+│ ├── map_search_bar.dart
+│ ├── map_widget.dart
+│ ├── search_city.dart
+│ └── weather_card.dart
 ```
 ---
 
@@ -110,8 +110,9 @@ lib/
 
 ### Page principale avec carte et météo
 <div align="center"> 
-  <img src="/assets/screenshots/home_screen.png" alt="home_screen" width="400"/>
-  <img src="/assets/screenshots/home_screen2.png" alt="home_screen2" width="400"/>
+  <img src="/assets/screenshots/home_screen.png" alt="home_screen" width="600"/>
+  <hr>
+  <img src="/assets/screenshots/home_screen2.png" alt="home_screen2" width="600"/>
 </div>
 
 ### Barre de Menu
