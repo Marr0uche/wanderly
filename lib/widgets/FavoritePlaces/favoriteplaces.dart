@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/gestures.dart';
 import '../../models/Lieu.dart';
 import 'favorite_place_card.dart';
 
@@ -13,24 +14,31 @@ class FavoritePlacesScroller extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    if (items.isEmpty) {
-      return const Center(child: Text("Pas de lieux favoris"));
-    }
-
-    return SizedBox(
+    return Container(
       height: _cardHeight,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        padding: const EdgeInsets.symmetric(horizontal: 8),
-        itemCount: items.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 8),
-        itemBuilder: (context, index) {
-          return FavoritePlaceCard(
-            lieu: items[index],
-            imageHeight: _imageHeight,
-            width: _cardWidth,
-          );
-        },
+      margin: const EdgeInsets.symmetric(vertical: 8),
+      child: ScrollConfiguration(
+		//pour pouvoir scroll sur les lieux favoris
+        behavior: ScrollConfiguration.of(context).copyWith(
+          dragDevices: {PointerDeviceKind.touch, PointerDeviceKind.mouse},
+          scrollbars: false,
+        ),
+        child: ListView.builder(
+          physics: const AlwaysScrollableScrollPhysics(),
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          itemCount: items.length,
+          itemBuilder: (context, index) {
+            return Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: FavoritePlaceCard(
+                lieu: items[index],
+                imageHeight: _imageHeight,
+                width: _cardWidth,
+              ),
+            );
+          },
+        ),
       ),
     );
   }
