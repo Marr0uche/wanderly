@@ -10,6 +10,7 @@ L'application fonctionne sur **mobile, web et desktop** et s'appuie sur des donn
 
 ## Structure du projet
 Le projet est organisé de manière modulaire afin de séparer clairement la logique métier, l'interface utilisateur et l'accès aux données.
+```bash
 lib/
 ├── app.dart
 ├── main.dart
@@ -62,7 +63,7 @@ lib/
 ├── map_widget.dart
 ├── search_city.dart
 └── weather_card.dart
-
+```
 ---
 
 
@@ -109,8 +110,8 @@ lib/
 
 ### Page principale avec carte et météo
 <div align="center"> 
-  <img src="/assets/screenshots/home_screen.png" alt="home_screen" width="200"/>
-  <img src="/assets/screenshots/home_screen2.png" alt="home_screen2" width="200"/>
+  <img src="/assets/screenshots/home_screen.png" alt="home_screen" width="400"/>
+  <img src="/assets/screenshots/home_screen2.png" alt="home_screen2" width="400"/>
 </div>
 
 ### Barre de Menu
@@ -120,12 +121,12 @@ lib/
 
 ### Page des villes favorites
 <div align="center">
-  <img src="/assets/screenshots/favorite_cities_.png" alt="favorite_cities" width="200"/>
+  <img src="/assets/screenshots/favorite_cities.png" alt="favorite_cities" width="400"/>
 </div>
 
 ### Page des détails d'un lieu
 <div align="center">
-  <img src="/assets/screenshots/location_details.png" alt="location_details" width="200"/>
+  <img src="/assets/screenshots/location_details.png" alt="location_details" width="400"/>
 </div>
 
 
