@@ -57,7 +57,7 @@ class Lieu {
 	}
 
 
-  // construit un lieu depuis un json OpenStreetap API
+  // construit un lieu depuis un json Overpass API
 	factory Lieu.fromJson(Map<String, dynamic> json, String cityKey) {
 		final tags = json["tags"] ?? {};
 
