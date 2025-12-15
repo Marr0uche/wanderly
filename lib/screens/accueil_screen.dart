@@ -68,7 +68,8 @@ class _AccueilScreenState extends State<AccueilScreen>
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              // LOGO ANIMÉ
+              
+              // LOGO ANIME
               AnimatedBuilder(
                 animation: _controller,
                 builder: (_, child) {

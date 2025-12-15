@@ -1,6 +1,13 @@
+// represente une ville ou une localisation issue d'OpenStreetMap
+// utilisee pour representer une ville favorie, resultat de recherche ou ville courante
+
 class CityLocation {
+
+  // Identifiant OSM unique
 	final int osmId;
-  	final String osmType;
+  final String osmType;
+
+  // Clé unique interne utilisée dans l'app
 	final String cityKey;
 	final String cityName;
 	final double cityLat;
@@ -15,11 +22,15 @@ class CityLocation {
 		required this.cityLong,
 	});
 
+
+  // Cree une CityLocation depuis un JSON venant de Nominatim API
 	static String createKey(int osmId, String osmType) {
 		final letter = osmType.isNotEmpty ? osmType[0].toUpperCase() : "U";
 		return "$letter$osmId";
 	}
 
+
+  // Reconstruit une CityLocation depuis un stockage local
 	factory CityLocation.fromJson(Map<String, dynamic> json) {
 		return CityLocation(
 			osmId: json['osm_id'] as int,
@@ -54,6 +65,8 @@ class CityLocation {
 		);
 	}
 
+
+  // Cree une copie de la ville avec modification partielle
 	CityLocation copyWith({int? osmId}) {
 		return CityLocation(
 			osmId: osmId ?? this.osmId,
@@ -65,6 +78,8 @@ class CityLocation {
 		);
 	}
 
+
+  // Deux CityLocation sont considerees egales si elles ont la meme cityKey
 	@override
 	bool operator ==(Object other) {
 		if (identical(this, other)) return true;

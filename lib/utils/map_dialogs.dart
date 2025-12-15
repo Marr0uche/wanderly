@@ -41,6 +41,7 @@ void openNameInputDialog(BuildContext context, LatLng latlng) async {
             final name = nameCtrl.text.trim();
             if (name.isNotEmpty) {
               Navigator.pop(context);
+              
               // Les 'listen: false' sont nécessaires dans un callback
               final mapVM = Provider.of<MapProvider>(context, listen: false); 
               final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context, listen: false);

@@ -12,15 +12,19 @@ import 'favorites_provider.dart';
 import 'favorite_places_provider.dart';
 
 class MapProvider extends ChangeNotifier {
+
+  // services externes de geo/GPS/meteo
 	final LocationService _locationService = LocationService();
 	final NominatimService _nominatimService = NominatimService();
 	final WeatherService _weatherService = WeatherService();
+	final OverpassService _overpass = OverpassService();
+
+  
 	CityLocation currentLocation = CityLocation(osmId: -1, osmType: "R", cityKey: "R-1", cityName: "Ma position", cityLat: 47.845431, cityLong: 1.937851);
 	LatLng center = const LatLng(47.845431, 1.937851);
 	WeatherData? weatherData;
 	String? error;
 
-	final OverpassService _overpass = OverpassService();
 	List<Lieu> lieux = [];
 	Set<String> activeCategories = {"tourism", "restaurants"};
 
@@ -100,10 +104,8 @@ class MapProvider extends ChangeNotifier {
 			center = LatLng(chosen!.cityLat, chosen.cityLong);
 			currentLocation = chosen;
 			weatherData = await getWeather(currentLocation.cityName);
-			//print("getWeather result: $weatherData");
 
 			await loadPlaces();
-			//print("loadPlaces done");
 
 
 		} catch (e) {
@@ -221,6 +223,7 @@ class MapProvider extends ChangeNotifier {
 		final CityLocation? city;
 
 		if (favVM.favorites.isNotEmpty) {
+      
 			//  Prendre la premiere ville favorite
 			city = favVM.favorites.first;
 		} else {

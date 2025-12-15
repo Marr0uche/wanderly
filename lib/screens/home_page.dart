@@ -65,11 +65,11 @@ class HomePage extends StatelessWidget {
         title: const Text("Explorer votre ville"),
       ),
 
-      // ------------------------------------------------------------------
-      // CORPS DE LA PAGE
-      // ------------------------------------------------------------------
+      
+      
       body: Stack(
         children: [
+          
           // Le contenu scrollable (carte + autres sections)
           SingleChildScrollView(
             child: Column(

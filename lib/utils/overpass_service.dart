@@ -22,21 +22,18 @@ class OverpassService {
 			out center;
 		""";
 
-		//print("\n\nbefore calling with query: $query");
 
 		final response = await http.post(
 			Uri.parse(_endpoint),
 			body: {"data": query},
 		);
 
-		//print("Overpass response: $response");
 
 		if (response.statusCode != 200 || !response.body.trim().startsWith("{")) {
 			throw Exception("Overpass error: ${response.body}");
 		}
 
 		final data = jsonDecode(response.body);
-		//print("Overpass data: $data");
 
 		return (data["elements"] as List).cast<Map<String, dynamic>>();
 	}

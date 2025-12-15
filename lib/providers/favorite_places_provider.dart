@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import '../db/database_helper.dart';
 import '../models/Lieu.dart';
 
+
+// Provider responsable des lieux favoris
+
+
 class FavoritesProviderPlace extends ChangeNotifier {
 	List<Lieu> favoritePlaces = [];
 	String? lastLoadedCityKey;
@@ -12,11 +16,7 @@ class FavoritesProviderPlace extends ChangeNotifier {
 		favoritePlaces = await Dbhelper.instance.fetchFavoritePlaces(cityKey);
 		lastLoadedCityKey = cityKey;
 		notifyListeners();
-
-		//print("Loaded favorite places for cityKey: $cityKey");
-		//print("Favorite Places: $favoritePlaces");
-		//await Dbhelper.instance.debugPrintFavoritePlaces();
-	}
+  }
 
 	bool isPlaceFavorite(Lieu place) {
 		return favoritePlaces.any((p) => p.id == place.id);

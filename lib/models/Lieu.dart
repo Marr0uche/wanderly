@@ -2,6 +2,8 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
+// represente un lieu
+
 class Lieu {
 	final int id;
 	final String name;
@@ -27,6 +29,8 @@ class Lieu {
 		this.note,
 	});
 
+
+  // couleur de l'icone sur la carte selon le type de lieu
 	Color get iconColor {
 		if (tags["leisure"] == "park") return Colors.green;
 		if (tags["tourism"] == "museum") return Colors.purple;
@@ -36,6 +40,8 @@ class Lieu {
 		return Colors.grey;
 	}
 
+
+  // construit un lieu depuis la base 
 	factory Lieu.fromMap(Map<String, dynamic> map) {
 		return Lieu(
 			id: map['id'],
@@ -50,6 +56,8 @@ class Lieu {
 		);
 	}
 
+
+  // construit un lieu depuis un json OpenStreetap API
 	factory Lieu.fromJson(Map<String, dynamic> json, String cityKey) {
 		final tags = json["tags"] ?? {};
 
@@ -63,6 +71,8 @@ class Lieu {
 		);
 	}
 
+
+  // Construit un lieu personnalise
 	factory Lieu.fromNominatim(Map<String, dynamic> json, String cityKey) {
 		final Map<String, dynamic> tags = {"addr:street": json['address']?['road'],
 										"addr:housenumber": json['address']?['house_number'],
