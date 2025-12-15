@@ -23,7 +23,7 @@ class CityLocation {
 	});
 
 
-  // Cree une CityLocation depuis un JSON venant de Nominatim API
+  // Cree une clé interne unique à partir de l'id et du type OSM
 	static String createKey(int osmId, String osmType) {
 		final letter = osmType.isNotEmpty ? osmType[0].toUpperCase() : "U";
 		return "$letter$osmId";

@@ -144,7 +144,7 @@ lib/
 ```bash
 flutter pub get
 ```
-3. Ajouter un fichier `.env` à la racine du projet avec la clé API API_KEY_OPENWEATHER et API_KEY_OPENTRIPMAP.
+3. Ajouter un fichier `.env` à la racine du projet ainsi que dans /assets avec la clé API API_KEY_OPENWEATHER.
 4. Lancer l'application :
 ```bash
 flutter run
