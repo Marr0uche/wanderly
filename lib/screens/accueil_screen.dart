@@ -1,29 +1,60 @@
 import 'package:flutter/material.dart';
 import 'home_page.dart';
 
-class AccueilScreen extends StatelessWidget {
-	const AccueilScreen({super.key});
+class AccueilScreen extends StatefulWidget {
+  const AccueilScreen({super.key});
 
-	
+  @override
+  State<AccueilScreen> createState() => _AccueilScreenState();
+}
 
-	/*void _goToNextScreen() {
-		Navigator.pushReplacement(
-			context,
-			PageRouteBuilder(
-			transitionDuration: Duration(milliseconds: 500),
-			transitionsBuilder: (_, animation, _, child) => SlideTransition(
-				position: Tween(
-				begin: Offset(1.0, 0.0),
-				end: Offset(0.0, 0.0),
-				).animate(animation),
-				child: child,
-			),
-			pageBuilder: (_, _, _) => MapPage(),
-			),
-		);
-	}*/
+class _AccueilScreenState extends State<AccueilScreen>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _rotation;
+  late Animation<double> _scale;
 
-	 @override
+  @override
+  void initState() {
+    super.initState();
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _rotation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+
+    _scale = Tween<double>(begin: 1.0, end: 3.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOutBack),
+    );
+  }
+
+  void _startAnimation() {
+    _controller.forward();
+
+    Future.delayed(const Duration(milliseconds: 700), () {
+      Navigator.pushReplacement(
+        context,
+        PageRouteBuilder(
+          transitionDuration: const Duration(milliseconds: 500),
+          pageBuilder: (_, __, ___) => const HomePage(),
+          transitionsBuilder: (_, animation, __, child) =>
+              FadeTransition(opacity: animation, child: child),
+        ),
+      );
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
@@ -33,32 +64,41 @@ class AccueilScreen extends StatelessWidget {
             fit: BoxFit.cover,
           ),
         ),
-        child:  Center(
+        child: Center(
           child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            // Logo
-            Image.asset(
-              'assets/images/logo.png',
-              width: 150,
-              height: 150,
-            ),
-            const SizedBox(height: 40),
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              
+              // LOGO ANIME
+              AnimatedBuilder(
+                animation: _controller,
+                builder: (_, child) {
+                  return Transform.rotate(
+                    angle: _rotation.value * 9.42,
+                    child: Transform.scale(
+                      scale: _scale.value,
+                      child: child,
+                    ),
+                  );
+                },
+                child: Image.asset(
+                  'assets/images/logo.png',
+                  width: 200,
+                  height: 200,
+                ),
+              ),
 
-            // Bouton Commencer
-            ElevatedButton(
-              child: const Text("Commencer"),
-              onPressed: () {
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const HomePage()),
-                );
-              },
-            ),
-          ],
+              const SizedBox(height: 40),
+
+              // BOUTON COMMENCER
+              ElevatedButton(
+                onPressed: _startAnimation,
+                child: const Text("Commencer"),
+              ),
+            ],
+          ),
         ),
       ),
-    )
     );
   }
 }

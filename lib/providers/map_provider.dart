@@ -2,71 +2,385 @@ import 'package:flutter/material.dart';
 import 'package:latlong2/latlong.dart';
 import '../utils/location_service.dart';
 import '../utils/nominatim_service.dart';
+import '../models/weather_data.dart';
+import '../utils/weather_service.dart';
+import '../models/city_location.dart';
+import '../models/Lieu.dart';
+import '../utils/overpass_service.dart';
+import 'package:provider/provider.dart';
+import 'favorites_provider.dart';
+import 'favorite_places_provider.dart';
 
 class MapProvider extends ChangeNotifier {
-  final LocationService _locationService = LocationService();
-  final NominatimService _nominatimService = NominatimService();
-  LatLng center = const LatLng(47.845431, 1.937851);
-  String latitude = "47.845431";
-  String longitude = "1.937851";
-  String? cityName = "Ma Position";
-  String? error;
 
-  // Initialise la position actuelle
-  Future<void> init() async {
-	final pos = await _locationService.getCurrentPosition();
-	if (pos == null) return;
+  // services externes de geo/GPS/meteo
+	final LocationService _locationService = LocationService();
+	final NominatimService _nominatimService = NominatimService();
+	final WeatherService _weatherService = WeatherService();
+	final OverpassService _overpass = OverpassService();
 
-	center = LatLng(pos.latitude, pos.longitude);
-	latitude = pos.latitude.toString();
-	longitude = pos.longitude.toString();
+  
+	CityLocation currentLocation = CityLocation(osmId: -1, osmType: "R", cityKey: "R-1", cityName: "Ma position", cityLat: 47.845431, cityLong: 1.937851);
+	LatLng center = const LatLng(47.845431, 1.937851);
+	WeatherData? weatherData;
+	String? error;
 
-  final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
-  if (city != null) cityName = city;
-	notifyListeners();
-  }
+	List<Lieu> lieux = [];
+	Set<String> activeCategories = {"tourism", "restaurants"};
 
-  // Recherche une ville par son nom
-  Future<void> searchCity(String city) async {
-	try{
+	bool addingCustomLocation = false;
+	
+	bool isLoading = false;
 
-	if (city.trim().isEmpty) {
-	  error = "Nom de ville invalide";
-	  notifyListeners();
-	  return;
+	// Initialise la position actuelle
+	Future<void> init() async {
+		isLoading = true;
+		notifyListeners();
+
+		final pos = await _locationService.getCurrentPosition();
+		if (pos == null) return;
+
+		center = LatLng(pos.latitude, pos.longitude);
+		currentLocation = CityLocation(osmId: -1, osmType: "R", cityKey: "R-1", cityName: "Ma position", cityLat: pos.latitude, cityLong: pos.longitude);
+
+		final city = await _nominatimService.getCityNameFromCoordinates(pos.latitude, pos.longitude);
+		if (city != null){
+			currentLocation = city;
+			weatherData = await getWeather(currentLocation.cityName);
+			await loadPlaces();
+		}
+		isLoading = false;
+		notifyListeners();
 	}
 
-	error = null;
-	notifyListeners();
+	//Va à une ville spécifique sans recherche
+	Future<void> selectCity(CityLocation city) async {
+		isLoading = true;
+		notifyListeners();
 
-	final result = await _nominatimService.searchCity(city);
+		currentLocation = city;
+		center = LatLng(city.cityLat, city.cityLong);
+		weatherData = await getWeather(city.cityName);
+		await loadPlaces();
 
-	if (result == null) {
-	  error = "Ville introuvable";
-	  notifyListeners();
-	  return;
-	}
-
-	center = LatLng(result.latitude, result.longitude);
-	latitude = result.latitude.toString();
-	longitude = result.longitude.toString();
-  cityName = city;
-
-	} catch (e) {
-	  error = "Erreur inattendue : $e";
+		isLoading = false;
+		notifyListeners();
 	}
 
 
-	notifyListeners();
-  }
+	// Recherche une ville par son nom
+	Future<void> searchCity(String city, BuildContext context) async {
+		try{
+			isLoading = true;
+			notifyListeners();
+			if (city.trim().isEmpty) {
+				error = "Nom de ville invalide";
+				isLoading = false;
+				notifyListeners();
+				return;
+			}
 
-  // Met a jour la ville depuis les favoris
-  void setCityFromFavorites(String city, LatLng newCenter) {
-    center = newCenter;
-    latitude = newCenter.latitude.toString();
-    longitude = newCenter.longitude.toString();
-    notifyListeners();
-  }
+			city = city[0].toUpperCase() + city.substring(1);
 
+			// On vérifie si la ville existe via les suggestions
+			final suggestions = await _nominatimService.searchCitySuggestions(city);
+
+			if (suggestions.isEmpty) {
+				error = "Aucun résultat trouvé";
+				isLoading = false;
+				notifyListeners();
+				return;
+			}
+
+			// On prend la suggestion choisi ou la premiere
+			CityLocation? chosen;
+
+			if (suggestions.length > 1) {
+				chosen = await _openCityChoiceDialog(context, suggestions);
+			} else {
+				chosen = suggestions.first;
+			}
+
+			center = LatLng(chosen!.cityLat, chosen.cityLong);
+			currentLocation = chosen;
+			weatherData = await getWeather(currentLocation.cityName);
+
+			await loadPlaces();
+
+
+		} catch (e) {
+			error = "Erreur inattendue : $e";
+		}
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+	Future<CityLocation?> _openCityChoiceDialog(BuildContext context, List<CityLocation> options) async {
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+		return showDialog<CityLocation>(
+			context: context,
+			builder: (context) {
+				return AlertDialog(
+					title: const Text("Quelle ville vouliez-vous dire ?"),
+					content: SizedBox(
+						width: double.maxFinite,
+						child: ListView.builder(
+							shrinkWrap: true,
+							itemCount: options.length,
+							itemBuilder: (_, i) {
+								final city = options[i];
+
+								final isFav = favVM.favorites.any(
+									(c) => c.cityKey == city.cityKey,
+								);
+
+								return ListTile(
+									title: Text(city.cityName),
+									subtitle: Text("lat: ${city.cityLat}, lon: ${city.cityLong}"),
+									trailing: Icon(
+										isFav ? Icons.favorite : Icons.favorite_border,
+										color: Colors.red,
+									),
+									onTap: () => Navigator.pop(context, city),
+								);
+							},
+						),
+					),
+				);
+			},
+		);
+	}
+
+
+	Future<WeatherData?> getWeather(String city) async {
+		return await _weatherService.getWeather(city);
+	}
+
+	/* Tout ce qui est lieux */
+
+	Future<void> toggleCategory(String category) async {
+		isLoading = true;
+		notifyListeners();
+
+		if (activeCategories.contains(category)) {
+			activeCategories.remove(category);
+		} else {
+			activeCategories.add(category);
+		}
+		await loadPlaces();
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+	void clearCategories() {
+		activeCategories.clear();
+		lieux = [];
+		notifyListeners();
+	}
+
+	Future<void> activateAll() async {
+		isLoading = true;
+		notifyListeners();
+
+		activeCategories = {
+			"parks",
+			"museums",
+			"stations",
+			"universities",
+			"tourism",
+      		"restaurants"
+		};
+		await loadPlaces();
+		isLoading = false;
+		notifyListeners();
+	}
+
+	Future<void> loadPlaces() async {
+
+		if (currentLocation.cityLat == 0) return;
+
+		lieux = (await _overpass.fetchPlaces(
+			lat: currentLocation.cityLat,
+			lon: currentLocation.cityLong,
+			radius: 1200,
+			categories: activeCategories,
+		)).map((e) => Lieu.fromJson(e, currentLocation.cityKey)).toList();
+
+		notifyListeners();
+  	}
+
+
+	Future<void> loadInitialCity(BuildContext context) async {
+		isLoading = true;
+		notifyListeners();
+
+		final favVM = Provider.of<FavoritesProvider>(context, listen: false);
+
+		await favVM.loadFavorites();
+
+		final CityLocation? city;
+
+		if (favVM.favorites.isNotEmpty) {
+      
+			//  Prendre la premiere ville favorite
+			city = favVM.favorites.first;
+		} else {
+			city = await goToCurrentLocation();
+		}
+
+		if (city != null) {
+			currentLocation = city;
+			center = LatLng(currentLocation.cityLat, currentLocation.cityLong);
+			weatherData = await getWeather(currentLocation.cityName);
+			await loadPlaces();
+		}
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+	
+	Future<CityLocation?> goToCurrentLocation() async {
+		isLoading = true;
+		notifyListeners();
+
+		final pos = await _locationService.getCurrentPosition();
+		if (pos == null) {
+			isLoading = false;
+			notifyListeners();
+			return null;
+		}
+		center = LatLng(pos.latitude, pos.longitude);
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			pos.latitude,
+			pos.longitude,
+		);
+
+		CityLocation finalCity;
+
+		if (city != null) {
+			finalCity = city;
+		} else {
+			finalCity = CityLocation(
+			osmId: -1,
+			osmType: "R",
+			cityKey: "R-1",
+			cityName: "Ma position",
+			cityLat: pos.latitude,
+			cityLong: pos.longitude,
+			);
+		}
+
+		currentLocation = finalCity;
+		weatherData = await getWeather(finalCity.cityName);
+		await loadPlaces();
+
+		isLoading = false;
+		notifyListeners();
+
+		return finalCity;
+	}
+
+
+	void startAddingCustomLocation() {
+		addingCustomLocation = true;
+		notifyListeners();
+	}
+
+	void stopAddingCustomLocation() {
+		addingCustomLocation = false;
+		notifyListeners();
+	}
+
+	Future<Lieu?> addCustomLocation(String name, LatLng latlng) async {
+		isLoading = true;
+		notifyListeners();
+
+		// On récupère la ville pour générer une cityKey
+		final city = await _nominatimService.getCityNameFromCoordinates(
+			latlng.latitude,
+			latlng.longitude,
+		);
+
+		if (city == null) return null;
+
+		String cityKey = currentLocation.cityKey;
+
+		final customLieu = Lieu(
+			id: DateTime.now().millisecondsSinceEpoch,
+			name: name,
+			latitude: latlng.latitude,
+			longitude: latlng.longitude,
+			isCustom: true,
+			tags: {},
+			cityKey: cityKey,
+		);
+
+		isLoading = false;
+		notifyListeners();
+
+		return customLieu;
+	}
+
+
+	Future<void> searchLocation(String query, BuildContext context) async {
+		isLoading = true;
+		notifyListeners();
+
+		final results = await _nominatimService.searchPlaces(query, lat: currentLocation.cityLat, lon: currentLocation.cityLong);
+
+		if (results.isEmpty) {
+			isLoading = false;
+			notifyListeners();
+			return;
+		}
+
+		final chosen = await _openPlaceChoiceDialog(context, results);
+		if (chosen == null) {
+			isLoading = false;
+			notifyListeners();
+			return;
+		}
+
+		center = LatLng(chosen.latitude, chosen.longitude);
+		final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context, listen: false);
+		favoritePlacesVM.addFavoritePlace(chosen);
+
+		ScaffoldMessenger.of(
+		context,
+		).showSnackBar(const SnackBar(content: Text("Lieu ajouté !")));
+
+		isLoading = false;
+		notifyListeners();
+	}
+
+	Future<Lieu?> _openPlaceChoiceDialog( BuildContext context, List<Map<String, dynamic>> results) {
+		return showDialog<Lieu>(
+			context: context,
+			builder: (_) {
+				return AlertDialog(
+					title: const Text("Choisir un lieu"),
+					content: SizedBox(
+						width: double.maxFinite,
+						child: ListView.builder(
+							itemCount: results.length,
+							itemBuilder: (_, i) {
+								final r = results[i];
+								return ListTile(
+									title: Text(r['display_name']),
+									onTap: () {
+										final lieu = Lieu.fromNominatim(r, currentLocation.cityKey);
+										Navigator.pop(context, lieu);
+									},
+								);
+							},
+						),
+					),
+				);
+			},
+		);
+  }
 
 }

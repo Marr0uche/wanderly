@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import '../providers/map_provider.dart';
 import '../providers/favorites_provider.dart';
-import '../models/city_location.dart';
+import '../providers/favorite_places_provider.dart';
+
+import '../widgets/search_city.dart';
+import '../widgets/category_button.dart';
+import '../widgets/map_widget.dart';
+import '../widgets/weather_card.dart';
+import '../widgets/FavoritePlaces/favoriteplaces.dart'; 
+import '../utils/map_dialogs.dart'; 
 
 class MapPage extends StatefulWidget {
   const MapPage({super.key});
@@ -15,12 +23,13 @@ class MapPage extends StatefulWidget {
 class _MapPageState extends State<MapPage> {
   final TextEditingController _cityController = TextEditingController();
   final MapController _mapController = MapController();
+  LatLng? _lastCenter;
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      Provider.of<MapProvider>(context, listen: false).init();
+      Provider.of<MapProvider>(context, listen: false).loadInitialCity(context);
     });
   }
 
@@ -28,130 +37,109 @@ class _MapPageState extends State<MapPage> {
   Widget build(BuildContext context) {
     final mapVM = Provider.of<MapProvider>(context);
     final favVM = Provider.of<FavoritesProvider>(context);
+    final favoritePlacesVM = Provider.of<FavoritesProviderPlace>(context);
+    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    WidgetsBinding.instance.addPostFrameCallback(
-      (_) => _mapController.move(mapVM.center, 12.0),
-    );
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (_lastCenter == null ||
+          _lastCenter!.latitude != mapVM.center.latitude ||
+          _lastCenter!.longitude != mapVM.center.longitude) {
+        _mapController.move(mapVM.center, 12.0);
+        _lastCenter = mapVM.center;
+      }
+    });
 
-    return Column(
-      children: [
-        Expanded(
-          flex: 1,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              boxShadow: const [BoxShadow(blurRadius: 5, color: Colors.black26)],
+    return Container(
+      width: double.infinity,
+      color: isDark
+          ? const Color.fromARGB(255, 26, 31, 55)
+          : const Color(0xFFE9EAEC),
+      child: SingleChildScrollView( 
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch, 
+          children: [
+            //  Champ de recherche de ville
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: CitySearchField(controller: _cityController),
             ),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: [
-                TextField(
-                  controller: _cityController,
-                  decoration: const InputDecoration(
-                    hintText: "Rechercher une ville...",
-                    border: OutlineInputBorder(),
-                    suffixIcon: Icon(Icons.search),
-                  ),
-                  onSubmitted: mapVM.searchCity,
-                ),
 
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      mapVM.cityName ?? "Ville inconnue",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    IconButton(
-                      icon: Icon(
-                        favVM.favorites.any((c) => c.name == mapVM.cityName)
-                            ? Icons.favorite
-                            : Icons.favorite_border,
-                        color: Colors.red,
-                      ),
-                      onPressed: () {
-                        if (mapVM.cityName == null) return;
-                        final city = CityLocation(
-                          name: mapVM.cityName!,
-                          latitude: double.tryParse(mapVM.latitude) ?? 0.0,
-                          longitude: double.tryParse(mapVM.longitude) ?? 0.0,
-                        );
-                        favVM.favorites.contains(city)
-                            ? favVM.removeFavorite(city)
-                            : favVM.addFavorite(city);
+            //  Carte météo
+            mapVM.weatherData == null
+                ? const Padding(
+                      padding: EdgeInsets.all(16),
+                      child: Center(child: CircularProgressIndicator()),
+                  )
+                : WeatherCard(
+                      data: mapVM.weatherData!,
+                      cityName: mapVM.currentLocation.cityName,
+                      isFavorite: favVM.favorites.any((c) => c.cityKey == mapVM.currentLocation.cityKey),
+                      onToggleFavorite: () {
+                          final city = mapVM.currentLocation;
+                          favVM.favorites.any((c) => c.cityKey == city.cityKey)
+                              ? favVM.removeFavorite(city)
+                              : favVM.addFavorite(city);
                       },
-                    )
-                  ],
-                ),
-
-                Text("Lat: ${mapVM.latitude} | Lon: ${mapVM.longitude}"),
-              ],
-            ),
-          ),
-        ),
-
-        Expanded(
-          flex: 2,
-          child: Container(
-            margin: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(15),
-              child: FlutterMap(
-                mapController: _mapController,
-                options: MapOptions(
-                  initialCenter: mapVM.center,
-                  initialZoom: 12.0,
-                ),
-                children: [
-                  TileLayer(
-                    urlTemplate:
-                        "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png",
-                    subdomains: const ['a', 'b', 'c', 'd'],
                   ),
-                  MarkerLayer(
-                    markers: [
-                      Marker(
-                        point: mapVM.center,
-                        child: const Icon(
-                          Icons.location_on,
-                          color: Colors.red,
-                          size: 40,
+
+            //  Boutons de catégories
+            const CategoryFilterButtons(),
+
+            //  Carte
+            MapWidget(
+              mapController: _mapController,
+              onOpenPlaceDetails: (lieu) => openPlaceDetails(context, lieu), 
+            ),
+
+            const SizedBox(height: 20),
+
+            //  Favoris filtrés
+            Builder(
+              builder: (_) {
+                final currentCityKey = mapVM.currentLocation.cityKey;
+
+                final favoritesInCity = favoritePlacesVM.favoritePlaces
+                    .where((f) => f.cityKey == currentCityKey)
+                    .toList();
+
+                return favoritesInCity.isNotEmpty
+                    ? Column(
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
+                            ),
+                            child: Text(
+                              "Lieux favoris dans cette ville",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: isDark ? Colors.white : Colors.black87,
+                              ),
+                            ),
+                          ),
+                          FavoritePlacesScroller(items: favoritesInCity),
+                        ],
+                      )
+                    : Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(20),
+                        child: const Center(
+                          child: Text(
+                            "Pas de lieux favoris dans cette ville",
+                            style: TextStyle(fontSize: 16),
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                      );
+              },
             ),
-          ),
+            
+			const SizedBox(height: 20),
+          ],
         ),
-
-        Expanded(
-          flex: 1,
-          child: Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              boxShadow: const [BoxShadow(blurRadius: 4, color: Colors.black26)],
-            ),
-            child: const Center(
-              child: Text(
-                "Infos supplémentaires à venir...",
-                style: TextStyle(fontSize: 16),
-              ),
-            ),
-          ),
-        )
-      ],
+      ),
     );
   }
 }

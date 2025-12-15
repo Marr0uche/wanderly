@@ -1,0 +1,141 @@
+import 'dart:convert';
+
+import 'package:flutter/material.dart';
+
+// represente un lieu
+
+class Lieu {
+	final int id;
+	final String name;
+	final double latitude;
+	final double longitude;
+	final Map<String, dynamic> tags;
+	final String cityKey;
+
+	final bool isCustom;
+
+	final double? rating; 
+  	final String? note; 
+
+	Lieu({
+		required this.id,
+		required this.name,
+		required this.latitude,
+		required this.longitude,
+		required this.tags,
+		required this.cityKey,
+		this.isCustom = false,
+		this.rating,
+		this.note,
+	});
+
+
+  // couleur de l'icone sur la carte selon le type de lieu
+	Color get iconColor {
+		if (tags["leisure"] == "park") return Colors.green;
+		if (tags["tourism"] == "museum") return Colors.purple;
+		if (tags["railway"] == "station") return Colors.blue;
+		if (tags["amenity"] == "university") return Colors.orange;
+		if (tags["tourism"] == "attraction") return Colors.red;
+		return Colors.grey;
+	}
+
+
+  // construit un lieu depuis la base 
+	factory Lieu.fromMap(Map<String, dynamic> map) {
+		return Lieu(
+			id: map['id'],
+			name: map['name'],
+			latitude: map['lat'],
+			longitude: map['lon'],
+			tags: jsonDecode(map['tags']), 
+			cityKey: map['cityKey'],
+			rating: map['rating'],
+      		note: map['note'],
+			isCustom: map['isCustom'] == 1,
+		);
+	}
+
+
+  // construit un lieu depuis un json Overpass API
+	factory Lieu.fromJson(Map<String, dynamic> json, String cityKey) {
+		final tags = json["tags"] ?? {};
+
+		return Lieu(
+			id: json["id"],
+			name: tags["name"] ?? "Lieu sans nom",
+			latitude: (json["lat"] ?? json["center"]?["lat"])?.toDouble() ?? 0,
+			longitude: (json["lon"] ?? json["center"]?["lon"])?.toDouble() ?? 0,
+			tags: tags,
+			cityKey: cityKey,
+		);
+	}
+
+
+  // Construit un lieu personnalise
+	factory Lieu.fromNominatim(Map<String, dynamic> json, String cityKey) {
+		final Map<String, dynamic> tags = {"addr:street": json['address']?['road'],
+										"addr:housenumber": json['address']?['house_number'],
+										"contact:website": json['extratags']?['website'],
+										"contact:phone": json['extratags']?['phone'],
+										"contact:email": json['extratags']?['email'],
+										"contact:facebook": json['extratags']?['facebook'],
+									  };
+		return Lieu(
+			id: json['place_id'],
+			name: json['name'],
+			latitude: double.parse(json['lat']),
+			longitude: double.parse(json['lon']),
+			tags: tags,
+			isCustom: true,
+			cityKey: cityKey,
+		);
+	}
+
+	Map<String, dynamic> toMap() {
+		return {
+			'id': id,
+			'name': name,
+			'lat': latitude,
+			'lon': longitude,
+			'tags': jsonEncode(tags),
+			'cityKey': cityKey,
+			'rating': rating,
+      		'note': note,
+			'isCustom': isCustom ? 1 : 0,
+		};
+	}
+
+	Lieu copyWith({int? id}) {
+		return Lieu(
+			id: id ?? this.id,
+			name: name,
+			latitude: latitude,
+			longitude: longitude,
+			tags: tags,
+			cityKey: cityKey,
+			isCustom: isCustom,
+			rating: rating,
+			note: note,
+		);
+	}
+
+	Lieu copyWithRatNot({double? rating, String? note}) {
+		return Lieu(
+			id: id ,
+			name: name,
+			latitude: latitude,
+			longitude: longitude,
+			tags: tags,
+			cityKey: cityKey,
+			rating: rating ?? this.rating,
+			note: note ?? this.note,
+			isCustom: isCustom,
+		);
+  	}
+
+	@override
+	String toString() {
+		return '$name{id: $id,\n latitude: $latitude,\n longitude: $longitude,\n tags: $tags,\n cityKey: $cityKey,\n isCustom: $isCustom,\n rating: $rating,\n note: $note}\n\n';
+	}
+}
